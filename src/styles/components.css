@@ -1,0 +1,54 @@
+/**
+ * Components CSS
+ * Stylowanie dla Web Components
+ */
+
+/* Weather Search Component */
+weather-search {
+  display: block;
+  margin-bottom: var(--space-lg);
+}
+
+weather-search::part(input) {
+  width: 100%;
+}
+
+/* Current Weather Component */
+current-weather {
+  display: block;
+}
+
+current-weather::part(card) {
+  min-height: 300px;
+}
+
+/* Forecast Component */
+weather-forecast {
+  display: block;
+  margin-top: var(--space-lg);
+}
+
+/* Chart Component */
+weather-chart {
+  display: block;
+  margin-top: var(--space-lg);
+}
+
+/* Grid dla responsywności */
+@media (min-width: 1024px) {
+  main {
+    display: grid !important;
+    grid-template-columns: 1fr;
+    gap: var(--space-lg);
+  }
+}
+
+/* Dark mode (future) */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --dark: #f0f0f0;
+    --light: #1a1a1a;
+    --white: #1e1e1e;
+    --gray-light: #2a2a2a;
+  }
+}

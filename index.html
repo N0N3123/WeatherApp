@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Weather App - Prognoza Pogody</title>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="src/styles/main.css" />
+    <link rel="stylesheet" href="src/styles/components.css" />
+    <link rel="stylesheet" href="src/styles/charts.css" />
+  </head>
+  <body>
+    <div id="root" class="container">
+      <header class="header">
+        <h1>🌤️ Weather App</h1>
+        <p class="subtitle">Sprawdź pogodę dla swojego miasta</p>
+      </header>
+
+      <main class="main-content">
+        <!-- Search Component -->
+        <weather-search id="searchWidget"></weather-search>
+
+        <!-- Current Weather Section -->
+        <section class="section">
+          <current-weather id="currentWeather"></current-weather>
+        </section>
+
+        <!-- Forecast Section -->
+        <section class="section">
+          <h2>Prognoza na 7 dni</h2>
+          <weather-forecast id="forecastWidget"></weather-forecast>
+        </section>
+
+        <!-- Charts Section -->
+        <section class="section">
+          <h2>Historia temperatury</h2>
+          <weather-chart
+            id="chartWidget"
+            data-chart-type="temperature"
+          ></weather-chart>
+        </section>
+
+        <!-- Historical Data Section -->
+        <section class="section">
+          <h2>📊 Dane historyczne (80 lat wstecz!)</h2>
+          <historical-chart id="historicalChart"></historical-chart>
+        </section>
+
+        <!-- Loading & Error States -->
+        <div id="loadingOverlay" class="loading-overlay hidden">
+          <div class="spinner"></div>
+          <p>Ładowanie danych...</p>
+        </div>
+
+        <div id="errorNotification" class="error-notification hidden"></div>
+      </main>
+
+      <footer class="footer">
+        <p>&copy; 2026 Weather App | Dane z API</p>
+      </footer>
+    </div>
+
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Main App Entry Point -->
+    <script type="module" src="src/index.js"></script>
+  </body>
+</html>

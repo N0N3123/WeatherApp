@@ -1,0 +1,82 @@
+/**
+ * Charts CSS
+ * Stylowanie dla Chart.js
+ */
+
+.chart-wrapper {
+  position: relative;
+  width: 100%;
+  height: auto;
+}
+
+.chart-container {
+  position: relative;
+  width: 100%;
+  height: 400px;
+  margin-top: var(--space-lg);
+}
+
+/* Chart.js customization */
+.chartjs-tooltip {
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: var(--radius-md);
+  color: white;
+  opacity: 1;
+  position: absolute;
+  pointer-events: none;
+  transform: translate(-50%, 0);
+  transition: all 0.1s ease;
+  padding: 0.5rem 1rem;
+  z-index: 100;
+}
+
+.chart-title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  margin-bottom: var(--space-md);
+  color: var(--dark);
+}
+
+.chart-legend {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-lg);
+  margin-top: var(--space-lg);
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: var(--font-size-sm);
+}
+
+.legend-box {
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-sm);
+}
+
+.legend-box.temperature {
+  background-color: #ff6b6b;
+}
+
+.legend-box.humidity {
+  background-color: #4ecdc4;
+}
+
+.legend-box.pressure {
+  background-color: #ffe66d;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .chart-container {
+    height: 300px;
+  }
+
+  .chart-legend {
+    gap: var(--space-md);
+  }
+}
