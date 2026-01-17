@@ -14,6 +14,7 @@ import './components/Search.js';
 import './components/Forecast.js';
 import './components/Chart.js';
 import './components/HistoricalChart.js';
+import './components/Favorites.js';
 
 // ============================================================
 // INICJALIZACJA
@@ -116,8 +117,14 @@ class WeatherApp {
     async init() {
         console.log('🚀 WeatherApp inicjalizacja - Open-Meteo API');
 
-        // Pobierz domyślne miasto (bez wymagania API key)
-        await this.fetchWeatherData(CONFIG.APP.DEFAULT_CITY);
+        // 1. Sprawdź, czy mamy zapisane miasto w StateManager (z LocalStorage)
+        const savedCity = stateManager.get('currentCity');
+
+        // 2. Jeśli jest zapisane, użyj go. Jeśli nie, weź z CONFIG (Warsaw)
+        const cityToLoad = savedCity || CONFIG.APP.DEFAULT_CITY;
+
+        console.log(`🌍 Wczytuję miasto startowe: ${cityToLoad}`);
+        await this.fetchWeatherData(cityToLoad);
 
         console.log('✅ WeatherApp gotowa!');
     }

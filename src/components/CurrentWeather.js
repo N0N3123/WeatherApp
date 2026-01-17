@@ -1,9 +1,3 @@
-/**
- * CurrentWeather Component
- * Custom Web Component - wyświetla aktualną pogodę
- * Atrybuty, właściwości, eventy
- */
-
 import { stateManager } from '../state/stateManager.js';
 import {
     formatTemperature,
@@ -20,31 +14,25 @@ class CurrentWeatherComponent extends HTMLElement {
         super();
         this.attachShadow({ mode: 'open' });
         this.weatherData = null;
-        this.unsubscribe = null;
     }
 
-    // Obserwowane atrybuty
     static get observedAttributes() {
         return ['city', 'temp-unit'];
     }
 
     connectedCallback() {
-        this.render();
+        this.renderStructure();
 
-        // Subskrybuj zmiany w state
-        this.unsubscribe = stateManager.subscribe('currentWeather', (data) => {
+        // Subskrypcja pogody
+        stateManager.subscribe('currentWeather', (data) => {
             this.weatherData = data;
-            this.updateView();
+            this.updateContent();
         });
 
-        console.log('✅ CurrentWeatherComponent mounted');
-    }
-
-    disconnectedCallback() {
-        if (this.unsubscribe) {
-            this.unsubscribe();
-        }
-        console.log('❌ CurrentWeatherComponent unmounted');
+        // Subskrypcja ulubionych (żeby odświeżyć serce)
+        stateManager.subscribe('favorites', () => {
+            this.updateHeartStatus();
+        });
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
@@ -59,31 +47,10 @@ class CurrentWeatherComponent extends HTMLElement {
         }
     }
 
-    // Właściwości komponentu (settery/gettery)
-    get weather() {
-        return this.weatherData;
-    }
-
-    set weather(data) {
-        this.weatherData = data;
-        this.updateView();
-    }
-
-    get city() {
-        return this.getAttribute('city');
-    }
-
-    set city(value) {
-        this.setAttribute('city', value);
-    }
-
-    render() {
+    renderStructure() {
         this.shadowRoot.innerHTML = `
             <style>
-                :host {
-                    display: block;
-                }
-
+                :host { display: block; }
                 .card {
                     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                     border-radius: 12px;
@@ -95,101 +62,88 @@ class CurrentWeatherComponent extends HTMLElement {
                     flex-direction: column;
                     justify-content: space-between;
                 }
-
-                .city-name {
-                    font-size: 2rem;
-                    font-weight: 700;
-                    margin: 0 0 1rem 0;
+                .header-row {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-start;
                 }
+                .city-name {
+                    font-size: 2rem; font-weight: 700; margin: 0 0 0.5rem 0;
+                }
+                .date-label {
+                    opacity: 0.8; font-size: 0.9rem; margin: 0;
+                }
+                .heart-btn {
+                    background: none; border: none; font-size: 2rem;
+                    cursor: pointer; transition: transform 0.2s;
+                    color: rgba(255,255,255, 0.4);
+                    padding: 0; line-height: 1;
+                }
+                .heart-btn.active { color: #ff4757; transform: scale(1.1); }
+                .heart-btn:hover { transform: scale(1.2); color: rgba(255,255,255, 0.8); }
+                .heart-btn.active:hover { color: #ff6b81; }
 
                 .main-info {
-                    display: flex;
-                    align-items: center;
-                    gap: 2rem;
-                    margin: 1rem 0;
+                    display: flex; align-items: center; gap: 2rem; margin: 2rem 0;
                 }
-
-                .temperature {
-                    font-size: 4rem;
-                    font-weight: 700;
-                }
-
-                .weather-icon {
-                    font-size: 5rem;
-                }
-
+                .temperature { font-size: 4rem; font-weight: 700; line-height: 1; }
+                .weather-icon { font-size: 5rem; line-height: 1; }
                 .description {
-                    font-size: 1.3rem;
-                    opacity: 0.9;
-                    text-transform: capitalize;
+                    font-size: 1.3rem; opacity: 0.9; text-transform: capitalize; margin-top: 0.5rem;
                 }
 
                 .details-grid {
                     display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
                     gap: 1rem;
-                    margin-top: 1.5rem;
+                    margin-top: auto;
                 }
-
                 .detail-item {
                     background: rgba(255, 255, 255, 0.1);
                     padding: 1rem;
                     border-radius: 8px;
                     backdrop-filter: blur(10px);
                 }
-
                 .detail-label {
-                    font-size: 0.85rem;
-                    opacity: 0.8;
-                    display: block;
-                    margin-bottom: 0.5rem;
+                    font-size: 0.8rem; opacity: 0.7; display: block; margin-bottom: 0.3rem; text-transform: uppercase; letter-spacing: 0.5px;
                 }
-
-                .detail-value {
-                    font-size: 1.2rem;
-                    font-weight: 600;
-                }
-
-                .loading {
-                    text-align: center;
-                    padding: 2rem;
-                    opacity: 0.7;
-                }
-
-                .error {
-                    background: rgba(255, 0, 0, 0.1);
-                    color: #ff6b6b;
-                    padding: 1rem;
-                    border-radius: 8px;
-                    text-align: center;
-                }
+                .detail-value { font-size: 1.2rem; font-weight: 600; }
+                .detail-sub { font-size: 0.8rem; opacity: 0.7; margin-left: 0.3rem; font-weight: normal; }
+                
+                .loading { text-align: center; padding: 2rem; opacity: 0.7; }
             </style>
 
             <div class="card">
-                <div id="content" class="loading">
-                    Ładowanie pogody...
+                <div id="content">
+                    <div class="loading">Ładowanie pogody...</div>
                 </div>
             </div>
         `;
     }
 
-    updateView() {
-        const content = this.shadowRoot.querySelector('#content');
-
-        if (!this.weatherData) {
-            content.innerHTML =
-                '<div class="loading">Ładowanie pogody...</div>';
-            return;
-        }
+    updateContent() {
+        if (!this.weatherData) return;
 
         const main = this.weatherData.main;
         const weather = this.weatherData.weather[0];
         const wind = this.weatherData.wind;
+        const sys = this.weatherData.sys;
+
+        const content = this.shadowRoot.getElementById('content');
 
         content.innerHTML = `
-            <h2 class="city-name">${this.weatherData.name}, ${
-            this.weatherData.sys.country
+            <div class="header-row">
+                <div>
+                    <h2 class="city-name">${this.weatherData.name}, ${
+            sys.country
         }</h2>
+                    <p class="date-label">${new Date().toLocaleDateString(
+                        'pl-PL',
+                        { weekday: 'long', day: 'numeric', month: 'long' }
+                    )}</p>
+                </div>
+                <button class="heart-btn" id="favBtn" title="Dodaj do ulubionych">❤</button>
+            </div>
 
             <div class="main-info">
                 <div class="weather-icon">${getWeatherEmoji(weather.main)}</div>
@@ -205,17 +159,29 @@ class CurrentWeatherComponent extends HTMLElement {
 
             <div class="details-grid">
                 <div class="detail-item">
-                    <span class="detail-label">Feels Like</span>
+                    <span class="detail-label">Odczuwalna</span>
                     <div class="detail-value">${formatTemperature(
                         main.feels_like
                     )}</div>
                 </div>
-
+                
                 <div class="detail-item">
                     <span class="detail-label">Wilgotność</span>
                     <div class="detail-value">${formatHumidity(
                         main.humidity
                     )}</div>
+                </div>
+
+                <div class="detail-item">
+                    <span class="detail-label">Wiatr</span>
+                    <div class="detail-value">
+                        ${formatWindSpeed(
+                            wind.speed
+                        )} <span class="detail-sub">km/h</span>
+                    </div>
+                    <div style="font-size: 0.8rem; opacity: 0.8; margin-top: 0.2rem;">
+                        ${formatWindDirection(wind.deg)}
+                    </div>
                 </div>
 
                 <div class="detail-item">
@@ -226,41 +192,37 @@ class CurrentWeatherComponent extends HTMLElement {
                 </div>
 
                 <div class="detail-item">
-                    <span class="detail-label">Wiatr</span>
-                    <div class="detail-value">${formatWindSpeed(
-                        wind.speed
-                    )} km/h</div>
-                    <small>${formatWindDirection(wind.deg)}</small>
-                </div>
-
-                <div class="detail-item">
-                    <span class="detail-label">Chmury</span>
-                    <div class="detail-value">${
-                        this.weatherData.clouds.all
-                    }%</div>
-                </div>
-
-                <div class="detail-item">
                     <span class="detail-label">Widzialność</span>
                     <div class="detail-value">${(
                         this.weatherData.visibility / 1000
-                    ).toFixed(1)} km</div>
+                    ).toFixed(1)} <span class="detail-sub">km</span></div>
                 </div>
             </div>
         `;
 
-        // Emituj event - pogoda się załadowała
-        this.dispatchEvent(
-            new CustomEvent('weather-loaded', {
-                detail: { weather: this.weatherData },
-                bubbles: true,
-                composed: true,
-            })
-        );
+        // Podepnij serce
+        const favBtn = this.shadowRoot.getElementById('favBtn');
+        favBtn.addEventListener('click', () => {
+            stateManager.toggleFavorite(this.weatherData.name);
+        });
+
+        this.updateHeartStatus();
+    }
+
+    updateHeartStatus() {
+        const favBtn = this.shadowRoot.getElementById('favBtn');
+        if (!favBtn || !this.weatherData) return;
+
+        const favorites = stateManager.get('favorites') || [];
+        const isFav = favorites.includes(this.weatherData.name);
+
+        if (isFav) {
+            favBtn.classList.add('active');
+        } else {
+            favBtn.classList.remove('active');
+        }
     }
 }
 
-// Rejestracja komponentu
 customElements.define('current-weather', CurrentWeatherComponent);
-
 export { CurrentWeatherComponent };

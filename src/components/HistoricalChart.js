@@ -14,7 +14,7 @@ class HistoricalChartComponent extends HTMLElement {
         this.historicalData = null;
         this.unsubscribe = null;
         // Zoom i pan state
-        this.zoomLevel = 1; // 1 = pełny zakres, 2 = 50% danych, itp
+        this.zoomLevel = 1; // 1 = pełny zakres
         this.panOffset = 0; // Przesunięcie od 0 do 100%
         this.isDragging = false;
         this.dragStartX = 0;
@@ -30,11 +30,15 @@ class HistoricalChartComponent extends HTMLElement {
         this.setupEventListeners();
 
         this.unsubscribe = stateManager.subscribe('historicalData', (data) => {
+            // Jeśli dane przyjdą (nie są null), rysuj wykres
             if (data) {
                 this.historicalData = data;
                 this.updateChart(data);
             }
         });
+
+        // Ukryj slider na starcie
+        this.updateControlsVisibility();
 
         console.log('✅ HistoricalChartComponent mounted');
     }
@@ -76,9 +80,11 @@ class HistoricalChartComponent extends HTMLElement {
                     gap: 0.5rem;
                 }
 
-                label {
+                /* Ogólny styl dla etykiet inputów (Daty) */
+                .control-group > label {
                     font-weight: 600;
                     color: #333;
+                    cursor: default;
                 }
 
                 input[type="date"],
@@ -95,12 +101,20 @@ class HistoricalChartComponent extends HTMLElement {
                     align-items: center;
                 }
 
+                /* --- ZMIANA: Styl dla labela obejmującego checkbox --- */
                 .metric-checkbox {
                     display: flex;
                     align-items: center;
                     gap: 0.5rem;
-                    cursor: pointer;
+                    cursor: pointer; /* Łapka na całym obszarze */
                     user-select: none;
+                    padding: 4px 8px; /* Powiększenie obszaru kliknięcia */
+                    border-radius: 4px;
+                    transition: background 0.2s;
+                }
+                
+                .metric-checkbox:hover {
+                    background-color: #f0f0f0; /* Lekkie podświetlenie po najechaniu */
                 }
 
                 .metric-checkbox input[type="checkbox"] {
@@ -114,15 +128,6 @@ class HistoricalChartComponent extends HTMLElement {
                     cursor: pointer;
                     font-weight: 500;
                     color: #333;
-                }
-
-                input[type="checkbox"] {
-                    cursor: pointer;
-                }
-
-                .metric-checkbox label {
-                    margin: 0;
-                    cursor: pointer;
                 }
 
                 button {
@@ -182,12 +187,7 @@ class HistoricalChartComponent extends HTMLElement {
                 .slider-container input[type="range"] {
                     flex: 1;
                     min-width: 150px;
-                }
-
-                .slider-container #sliderValue {
-                    font-size: 12px;
-                    color: #666;
-                    min-width: 30px;
+                    cursor: pointer;
                 }
 
                 .chart-wrapper {
@@ -214,6 +214,7 @@ class HistoricalChartComponent extends HTMLElement {
                     right: 0;
                     background: white;
                     border-radius: 4px;
+                    z-index: 10;
                 }
 
                 .loading.hidden {
@@ -260,18 +261,18 @@ class HistoricalChartComponent extends HTMLElement {
                     </div>
                     <div class="control-group metrics-group">
                         <label>Metryki:</label>
-                        <div class="metric-checkbox">
+                        <label class="metric-checkbox">
                             <input type="checkbox" id="tempCheckbox" value="temperature" checked>
-                            <span onclick="this.previousElementSibling.click()">Temperatura</span>
-                        </div>
-                        <div class="metric-checkbox">
+                            <span>Temperatura</span>
+                        </label>
+                        <label class="metric-checkbox">
                             <input type="checkbox" id="precipCheckbox" value="precipitation">
-                            <span onclick="this.previousElementSibling.click()">Opady</span>
-                        </div>
-                        <div class="metric-checkbox">
+                            <span>Opady</span>
+                        </label>
+                        <label class="metric-checkbox">
                             <input type="checkbox" id="windCheckbox" value="wind">
-                            <span onclick="this.previousElementSibling.click()">Wiatr</span>
-                        </div>
+                            <span>Wiatr</span>
+                        </label>
                     </div>
                     <button id="loadBtn">Załaduj dane</button>
                 </div>
@@ -279,10 +280,9 @@ class HistoricalChartComponent extends HTMLElement {
                 <div class="zoom-controls">
                     <button id="zoomInBtn" title="Powiększ (Zoom In)">🔍+</button>
                     <button id="zoomOutBtn" title="Pomniejsz (Zoom Out)">🔍-</button>
-                    <div class="slider-container">
+                    <div class="slider-container" id="sliderContainer">
                         <label>Przesunięcie:</label>
                         <input type="range" id="rangeSlider" min="0" max="100" value="0">
-                        <span id="sliderValue">0%</span>
                     </div>
                 </div>
 
@@ -301,33 +301,15 @@ class HistoricalChartComponent extends HTMLElement {
         const startDateInput = this.shadowRoot.querySelector('#startDate');
         const endDateInput = this.shadowRoot.querySelector('#endDate');
         const loadBtn = this.shadowRoot.querySelector('#loadBtn');
-        const tempCheckbox = this.shadowRoot.querySelector('#tempCheckbox');
-        const precipCheckbox = this.shadowRoot.querySelector('#precipCheckbox');
-        const windCheckbox = this.shadowRoot.querySelector('#windCheckbox');
 
-        // Ustaw domy domyślne - ostatni rok
         const today = new Date();
-        const lastYear = new Date(
-            today.getFullYear() - 1,
-            today.getMonth(),
-            today.getDate()
-        );
+        const endDate = new Date(today);
+        endDate.setDate(today.getDate() - 1);
+        const startDate = new Date(endDate);
+        startDate.setDate(endDate.getDate() - 7);
 
-        startDateInput.valueAsDate = lastYear;
-        endDateInput.valueAsDate = today;
-
-        // Dodaj listener na zmianę checkboxów - rerenderuj bez reloadowania danych
-        const checkboxes = [tempCheckbox, precipCheckbox, windCheckbox];
-        checkboxes.forEach((checkbox) => {
-            if (checkbox) {
-                checkbox.addEventListener('change', () => {
-                    const historicalData = stateManager.get('historicalData');
-                    if (historicalData) {
-                        this.updateChart(historicalData);
-                    }
-                });
-            }
-        });
+        startDateInput.valueAsDate = startDate;
+        endDateInput.valueAsDate = endDate;
 
         loadBtn.addEventListener('click', () => {
             const startDate = startDateInput.value;
@@ -335,24 +317,18 @@ class HistoricalChartComponent extends HTMLElement {
             const city = stateManager.get('currentCity');
             const selectedMetrics = this.getSelectedMetrics();
 
-            if (!startDate || !endDate) {
-                alert('Wybierz oba zakresy dat!');
-                return;
-            }
+            if (!startDate || !endDate)
+                return alert('Wybierz oba zakresy dat!');
+            if (new Date(startDate) >= new Date(endDate))
+                return alert('Data początkowa musi być przed datą końcową!');
+            if (selectedMetrics.length === 0)
+                return alert('Wybierz co najmniej jedną metryką!');
 
-            if (new Date(startDate) >= new Date(endDate)) {
-                alert('Data początkowa musi być przed datą końcową!');
-                return;
-            }
+            stateManager.setHistoricalData(null);
 
-            if (selectedMetrics.length === 0) {
-                alert('Wybierz co najmniej jedną metryką!');
-                return;
-            }
-
-            // Reset loading - pokaż loading state znowu
             const loading = this.shadowRoot.querySelector('.loading');
             if (loading) {
+                loading.textContent = 'Ładowanie danych...';
                 loading.classList.remove('hidden');
             }
 
@@ -365,31 +341,32 @@ class HistoricalChartComponent extends HTMLElement {
             );
         });
 
-        // Zoom IN/OUT buttons
+        // Zoom & Pan
         const zoomInBtn = this.shadowRoot.querySelector('#zoomInBtn');
         const zoomOutBtn = this.shadowRoot.querySelector('#zoomOutBtn');
         const rangeSlider = this.shadowRoot.querySelector('#rangeSlider');
-        const sliderValue = this.shadowRoot.querySelector('#sliderValue');
         const canvas = this.shadowRoot.querySelector('#historicalCanvas');
 
         zoomInBtn?.addEventListener('click', () => {
             this.zoomLevel = Math.min(10, this.zoomLevel + 1);
+            this.updateControlsVisibility();
             this.updateChartWithZoom();
         });
 
         zoomOutBtn?.addEventListener('click', () => {
             this.zoomLevel = Math.max(1, this.zoomLevel - 1);
+            this.updateControlsVisibility();
             this.updateChartWithZoom();
         });
 
         rangeSlider?.addEventListener('input', (e) => {
             this.panOffset = parseInt(e.target.value);
-            sliderValue.textContent = `${this.panOffset}%`;
             this.updateChartWithZoom();
         });
 
         // Drag to pan
         canvas?.addEventListener('mousedown', (e) => {
+            if (this.zoomLevel <= 1) return;
             this.isDragging = true;
             this.dragStartX = e.clientX;
             this.dragStartOffset = this.panOffset;
@@ -398,19 +375,13 @@ class HistoricalChartComponent extends HTMLElement {
 
         document.addEventListener('mousemove', (e) => {
             if (!this.isDragging) return;
-
             const canvas = this.shadowRoot.querySelector('#historicalCanvas');
             const deltaX = e.clientX - this.dragStartX;
-            const sensitivity = 0.5; // Pixels to % ratio
+            const sensitivity = 0.5;
             const newOffset = this.dragStartOffset - deltaX * sensitivity;
 
-            // Clamp to 0-100%
             this.panOffset = Math.max(0, Math.min(100, newOffset));
-
-            if (rangeSlider) {
-                rangeSlider.value = this.panOffset;
-                sliderValue.textContent = `${this.panOffset}%`;
-            }
+            if (rangeSlider) rangeSlider.value = this.panOffset;
 
             this.updateChartWithZoom();
         });
@@ -421,35 +392,38 @@ class HistoricalChartComponent extends HTMLElement {
                 canvas.style.cursor = 'grab';
             }
         });
+    }
 
-        canvas?.addEventListener('mouseover', () => {
-            if (!this.isDragging) {
-                canvas.style.cursor = 'grab';
-            }
-        });
+    updateControlsVisibility() {
+        const sliderContainer =
+            this.shadowRoot.querySelector('#sliderContainer');
+        const rangeSlider = this.shadowRoot.querySelector('#rangeSlider');
 
-        canvas?.addEventListener('mouseout', () => {
-            canvas.style.cursor = 'default';
-        });
+        if (this.zoomLevel <= 1) {
+            sliderContainer.style.display = 'none';
+            this.panOffset = 0;
+            if (rangeSlider) rangeSlider.value = 0;
+        } else {
+            sliderContainer.style.display = 'flex';
+        }
     }
 
     updateChart(historicalData) {
         if (!historicalData || !historicalData.timestamps) return;
 
-        // Pobierz zaznaczone metryki z checkboxów
         const selectedMetrics = this.getSelectedMetrics();
+        if (selectedMetrics.length === 0)
+            return alert('Zaznacz co najmniej jedną metrikę!');
 
-        if (selectedMetrics.length === 0) {
-            alert('Zaznacz co najmniej jedną metrikę!');
-            return;
-        }
-
-        // Przygotuj dane do wykresu - WSZYSTKIE dane, nie tylko 365 dni!
         const totalDays = historicalData.timestamps.length;
-        const labels = historicalData.timestamps; // Wszystkie daty
+        const labels = historicalData.timestamps;
         const datasets = selectedMetrics.map((metric) =>
             this.getChartDataset(historicalData, metric, totalDays)
         );
+
+        this.zoomLevel = 1;
+        this.panOffset = 0;
+        this.updateControlsVisibility();
 
         this.renderChart(labels, datasets);
         this.updateStats(historicalData, selectedMetrics, totalDays);
@@ -458,7 +432,6 @@ class HistoricalChartComponent extends HTMLElement {
     updateChartWithZoom() {
         if (!this.historicalData) return;
 
-        // Oblicz które dane pokazać na podstawie zoom level i pan offset
         const totalPoints = this.historicalData.timestamps.length;
         const visiblePoints = Math.max(
             1,
@@ -469,7 +442,6 @@ class HistoricalChartComponent extends HTMLElement {
         );
         const endIndex = startIndex + visiblePoints;
 
-        // Slice'uj dane
         const slicedData = {
             ...this.historicalData,
             timestamps: this.historicalData.timestamps.slice(
@@ -505,7 +477,6 @@ class HistoricalChartComponent extends HTMLElement {
                 this.historicalData.uvIndex?.slice(startIndex, endIndex) || [],
         };
 
-        // Rerenderuj chart z nowymi danymi
         const selectedMetrics = this.getSelectedMetrics();
         if (selectedMetrics.length > 0) {
             const labels = slicedData.timestamps;
@@ -517,27 +488,19 @@ class HistoricalChartComponent extends HTMLElement {
                 )
             );
             this.renderChart(labels, datasets);
-
-            // Update stats z całego zakresu (nie tylko visible)
             this.updateStats(this.historicalData, selectedMetrics, totalPoints);
         }
     }
 
     getSelectedMetrics() {
         const tempCheckbox = this.shadowRoot.querySelector('#tempCheckbox');
-        const humidCheckbox = this.shadowRoot.querySelector('#humidCheckbox');
-        const dewCheckbox = this.shadowRoot.querySelector('#dewCheckbox');
         const precipCheckbox = this.shadowRoot.querySelector('#precipCheckbox');
         const windCheckbox = this.shadowRoot.querySelector('#windCheckbox');
-        const uvCheckbox = this.shadowRoot.querySelector('#uvCheckbox');
 
         const metrics = [];
         if (tempCheckbox?.checked) metrics.push('temperature');
-        if (humidCheckbox?.checked) metrics.push('humidity');
-        if (dewCheckbox?.checked) metrics.push('dew_point');
         if (precipCheckbox?.checked) metrics.push('precipitation');
         if (windCheckbox?.checked) metrics.push('wind');
-        if (uvCheckbox?.checked) metrics.push('uv_index');
 
         return metrics;
     }
@@ -545,44 +508,27 @@ class HistoricalChartComponent extends HTMLElement {
     getChartDataset(historicalData, chartType, limit) {
         const configs = {
             temperature: {
-                label: 'Temperatura (°C)',
+                label: 'Średnia Temperatura (°C)',
                 borderColor: '#FF6B6B',
                 backgroundColor: 'rgba(255, 107, 107, 0.1)',
                 data: historicalData.temperature || [],
             },
-            humidity: {
-                label: 'Wilgotność (%)',
-                borderColor: '#4ECDC4',
-                backgroundColor: 'rgba(78, 205, 196, 0.1)',
-                data: historicalData.humidity || [],
-            },
-            dew_point: {
-                label: 'Punkt rosy (°C)',
-                borderColor: '#FFB6C1',
-                backgroundColor: 'rgba(255, 182, 193, 0.1)',
-                data: historicalData.dewPoint || [],
-            },
             precipitation: {
-                label: 'Opady (mm)',
+                label: 'Średnie Opady (mm)',
                 borderColor: '#87CEEB',
                 backgroundColor: 'rgba(135, 206, 235, 0.1)',
                 data: historicalData.precipitation || [],
             },
             wind: {
-                label: 'Wiatr (km/h)',
+                label: 'Średnia Prędkość Wiatru (km/h)',
                 borderColor: '#95E1D3',
                 backgroundColor: 'rgba(149, 225, 211, 0.1)',
                 data: historicalData.windSpeed || [],
             },
-            uv_index: {
-                label: 'UV Index',
-                borderColor: '#FFD700',
-                backgroundColor: 'rgba(255, 215, 0, 0.1)',
-                data: historicalData.uvIndex || [],
-            },
         };
 
         const config = configs[chartType] || configs.temperature;
+        const isSinglePoint = config.data.length === 1;
 
         return {
             label: config.label,
@@ -592,7 +538,8 @@ class HistoricalChartComponent extends HTMLElement {
             borderWidth: 2,
             fill: false,
             tension: 0.4,
-            pointRadius: 1,
+            pointRadius: isSinglePoint ? 8 : 1,
+            pointHoverRadius: isSinglePoint ? 10 : 4,
             pointBackgroundColor: config.borderColor,
         };
     }
@@ -603,19 +550,15 @@ class HistoricalChartComponent extends HTMLElement {
 
         if (!canvas) return;
 
-        // Ukryj loading
-        if (loading) {
-            loading.classList.add('hidden');
-        }
+        if (loading) loading.classList.add('hidden');
 
         if (this.chart) {
             this.chart.destroy();
+            this.chart = null;
         }
 
         if (typeof Chart !== 'undefined') {
-            // Ustal krok dla Labels - co ile dni pokazywać etykietę
-            // Dla ~14000 dni (39 lat), co 365 dni = ~38 etykiet
-            const step = Math.max(1, Math.floor(labels.length / 50)); // Max ~50 labels na osi X
+            const step = Math.max(1, Math.floor(labels.length / 50));
 
             this.chart = new Chart(canvas, {
                 type: 'line',
@@ -628,11 +571,14 @@ class HistoricalChartComponent extends HTMLElement {
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    animation: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
                     plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top',
-                        },
+                        legend: { display: true, position: 'top' },
+                        tooltip: { enabled: true },
                     },
                     scales: {
                         y: {
@@ -640,9 +586,8 @@ class HistoricalChartComponent extends HTMLElement {
                             grace: '5%',
                         },
                         x: {
-                            ticks: {
-                                autoSkip: false,
-                            },
+                            ticks: { autoSkip: false },
+                            offset: true,
                         },
                     },
                 },
@@ -652,14 +597,12 @@ class HistoricalChartComponent extends HTMLElement {
 
     updateStats(historicalData, metrics, limit) {
         const statsContainer = this.shadowRoot.querySelector('#statsContainer');
-
         if (!metrics || metrics.length === 0) {
             statsContainer.innerHTML = '';
             return;
         }
 
         let statsHTML = '';
-
         metrics.forEach((metric) => {
             let data, label, unit, minData, maxData;
 
@@ -669,14 +612,6 @@ class HistoricalChartComponent extends HTMLElement {
                 maxData = historicalData.temperatureMax || [];
                 label = 'Temperatura';
                 unit = '°C';
-            } else if (metric === 'humidity') {
-                data = historicalData.humidity || [];
-                label = 'Wilgotność';
-                unit = '%';
-            } else if (metric === 'dew_point') {
-                data = historicalData.dewPoint || [];
-                label = 'Punkt rosy';
-                unit = '°C';
             } else if (metric === 'precipitation') {
                 data = historicalData.precipitation || [];
                 label = 'Opady';
@@ -685,21 +620,11 @@ class HistoricalChartComponent extends HTMLElement {
                 data = historicalData.windSpeed || [];
                 label = 'Wiatr';
                 unit = 'km/h';
-            } else if (metric === 'uv_index') {
-                data = historicalData.uvIndex || [];
-                label = 'UV Index';
-                unit = '';
             }
 
             if (data && data.length > 0) {
                 let avg, max, min;
-
-                // Dla temperatury używaj min/max z danych, nie z average
-                if (
-                    metric === 'temperature' &&
-                    minData.length > 0 &&
-                    maxData.length > 0
-                ) {
+                if (metric === 'temperature' && minData.length > 0) {
                     avg = (
                         data.reduce((a, b) => a + b, 0) / data.length
                     ).toFixed(1);
@@ -729,7 +654,6 @@ class HistoricalChartComponent extends HTMLElement {
                 `;
             }
         });
-
         statsContainer.innerHTML = statsHTML;
     }
 }
