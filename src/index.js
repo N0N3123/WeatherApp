@@ -6,9 +6,12 @@
 // Importuj wszystko co potrzebne
 import { CONFIG } from './config.js';
 import { weatherService } from './api/weatherService.js';
+import { authService } from './api/authService.js';
 import { stateManager } from './state/stateManager.js';
 
 // Importuj komponenty (rejestruje je automatycznie)
+import './components/Login.js';
+import './components/SearchHistory.js';
 import './components/CurrentWeather.js';
 import './components/Search.js';
 import './components/Forecast.js';
@@ -39,12 +42,21 @@ class WeatherApp {
             root: document.getElementById('root'),
             loadingOverlay: document.getElementById('loadingOverlay'),
             errorNotification: document.getElementById('errorNotification'),
+            loginWidget: document.getElementById('loginWidget'),
             searchWidget: document.getElementById('searchWidget'),
             currentWeather: document.getElementById('currentWeather'),
             forecastWidget: document.getElementById('forecastWidget'),
             chartWidget: document.getElementById('chartWidget'),
             historicalChart: document.getElementById('historicalChart'),
+            searchHistory: document.getElementById('searchHistory'),
+            authBtn: document.getElementById('authBtn'),
         };
+
+        if (this.elements.authBtn) {
+            this.elements.authBtn.textContent = authService.isAuthenticated()
+                ? 'Wyloguj się'
+                : 'Zaloguj się';
+        }
 
         console.log('✅ Elements setup');
     }
@@ -68,6 +80,14 @@ class WeatherApp {
         // Nasłuchuj na zmiany miasta
         stateManager.subscribe('currentCity', (city) => {
             console.log('🏙️ Zmienione miasto:', city);
+        });
+
+        // User change -> toggle logout button
+        stateManager.subscribe('user', (user) => {
+            const btn = this.elements.authBtn;
+            if (btn) {
+                btn.textContent = user ? 'Wyloguj się' : 'Zaloguj się';
+            }
         });
 
         console.log('✅ State listeners setup');
@@ -98,7 +118,7 @@ class WeatherApp {
             'forecast-selected',
             (e) => {
                 console.log('📅 Wybrany timestamp:', e.detail.timestamp);
-            }
+            },
         );
 
         // Historical Chart - request danych historycznych
@@ -110,6 +130,47 @@ class WeatherApp {
             });
         }
 
+        // Auth complete from login component
+        if (this.elements.loginWidget) {
+            this.elements.loginWidget.addEventListener('auth-complete', () => {
+                if (this.elements.authBtn) {
+                    this.elements.authBtn.textContent = 'Wyloguj się';
+                }
+                if (this.elements.searchHistory) {
+                    this.elements.searchHistory.refresh();
+                }
+                // Po zalogowaniu odśwież favorites z backendu localStorage
+                stateManager.set('favorites', authService.getFavorites());
+            });
+        }
+
+        // Auth button click
+        if (this.elements.authBtn) {
+            this.elements.authBtn.addEventListener('click', () => {
+                if (authService.isAuthenticated()) {
+                    authService.logout();
+                    stateManager.logoutUser();
+                    stateManager.set('favorites', []);
+                    if (this.elements.searchHistory) {
+                        this.elements.searchHistory.refresh();
+                    }
+                    if (this.elements.authBtn) {
+                        this.elements.authBtn.textContent = 'Zaloguj się';
+                    }
+                    return;
+                }
+
+                const loginComp = this.elements.loginWidget;
+                if (loginComp?.showModal) {
+                    loginComp.showModal();
+                } else if (loginComp?.shadowRoot) {
+                    loginComp.shadowRoot
+                        .getElementById('modal')
+                        ?.classList.remove('hidden');
+                }
+            });
+        }
+
         console.log('✅ Event listeners setup');
     }
 
@@ -118,6 +179,15 @@ class WeatherApp {
      */
     async init() {
         console.log('🚀 WeatherApp inicjalizacja - Open-Meteo API');
+
+        // Jeśli sesja istnieje, ustaw user i favorites
+        const session = authService.getCurrentSession();
+        if (session) {
+            stateManager.loginUser({
+                id: session.id,
+                username: session.username,
+            });
+        }
 
         // 1. Sprawdź, czy mamy zapisane miasto w StateManager (z LocalStorage)
         const savedCity = stateManager.get('currentCity');
@@ -177,6 +247,17 @@ class WeatherApp {
         // Pokaż komunikat o aktualizacji
         const time = new Date().toLocaleTimeString('pl-PL');
         console.log(`📍 Dane dla ${weatherData.name} zaktualizowane o ${time}`);
+
+        // Dodaj do historii jeśli user zalogowany
+        if (authService.isAuthenticated()) {
+            authService.addToHistory(weatherData.name, weatherData);
+
+            // Refresh historii w komponencie
+            const historyComponent = document.querySelector('search-history');
+            if (historyComponent) {
+                historyComponent.refresh();
+            }
+        }
     }
 
     /**
@@ -193,7 +274,7 @@ class WeatherApp {
             const historicalData = await weatherService.getHistoricalData(
                 city,
                 startDate,
-                endDate
+                endDate,
             );
             stateManager.setHistoricalData(historicalData);
             stateManager.setLoading(false);

@@ -1,11 +1,21 @@
 import { CONFIG } from '../config.js';
+import { authService } from '../api/authService.js';
 
 class StateManager {
     constructor() {
         // 1. Pobierz dane z LocalStorage na starcie
-        const savedUser = localStorage.getItem('weather_user');
-        const savedFavorites =
-            JSON.parse(localStorage.getItem('weather_favorites')) || [];
+        const savedUserRaw = localStorage.getItem('weather_user');
+        let savedUser = null;
+        if (savedUserRaw) {
+            try {
+                savedUser = JSON.parse(savedUserRaw);
+            } catch (e) {
+                // Stare dane w formacie string – wyczyść
+                console.warn('⚠️ Czyszczę stary format weather_user', e);
+                localStorage.removeItem('weather_user');
+            }
+        }
+        const savedFavorites = authService.getFavorites();
         const lastCity = localStorage.getItem('weather_last_city'); // <--- NOWE: Pobierz ostatnie miasto
 
         this.state = {
@@ -48,11 +58,9 @@ class StateManager {
 
         // --- ZAPIS DO STORAGE ---
         if (path === 'user') {
-            if (value) localStorage.setItem('weather_user', value);
+            if (value)
+                localStorage.setItem('weather_user', JSON.stringify(value));
             else localStorage.removeItem('weather_user');
-        }
-        if (path === 'favorites') {
-            localStorage.setItem('weather_favorites', JSON.stringify(value));
         }
         // <--- NOWE: Zapisuj miasto przy każdej zmianie
         if (path === 'currentCity') {
@@ -108,11 +116,13 @@ class StateManager {
 
     // --- AKCJE ---
 
-    loginUser(username) {
-        this.set('user', username);
+    loginUser(user) {
+        this.set('user', user);
+        this.set('favorites', authService.getFavorites());
     }
     logoutUser() {
         this.set('user', null);
+        this.set('favorites', []);
     }
 
     setCurrentWeather(data) {
@@ -140,14 +150,22 @@ class StateManager {
     }
 
     toggleFavorite(city) {
-        const favorites = this.state.favorites;
-        let newFavorites;
+        console.log('🔄 toggleFavorite:', city);
+        // Zawsze pobieraj świeże dane z authService
+        const favorites = authService.getFavorites();
+        console.log('📋 Obecne ulubione:', favorites);
+
         if (favorites.includes(city)) {
-            newFavorites = favorites.filter((c) => c !== city);
+            console.log('➖ Usuwam z ulubionych:', city);
+            authService.removeFavorite(city);
         } else {
-            newFavorites = [...favorites, city];
+            console.log('➕ Dodaję do ulubionych:', city);
+            authService.addFavorite(city);
         }
-        this.set('favorites', newFavorites);
+        // Ustaw zaktualizowane ulubione
+        const updated = authService.getFavorites();
+        console.log('📊 Po zmianie:', updated);
+        this.set('favorites', updated);
     }
 
     addToHistory(path, oldValue, newValue) {

@@ -1,4 +1,5 @@
 import { stateManager } from '../state/stateManager.js';
+import { authService } from '../api/authService.js';
 import {
     formatTemperature,
     formatWeatherDescription,
@@ -42,7 +43,7 @@ class CurrentWeatherComponent extends HTMLElement {
                     detail: { city: newValue },
                     bubbles: true,
                     composed: true,
-                })
+                }),
             );
         }
     }
@@ -134,11 +135,11 @@ class CurrentWeatherComponent extends HTMLElement {
             <div class="header-row">
                 <div>
                     <h2 class="city-name">${this.weatherData.name}, ${
-            sys.country
-        }</h2>
+                        sys.country
+                    }</h2>
                     <p class="date-label">${new Date().toLocaleDateString(
                         'pl-PL',
-                        { weekday: 'long', day: 'numeric', month: 'long' }
+                        { weekday: 'long', day: 'numeric', month: 'long' },
                     )}</p>
                 </div>
                 <button class="heart-btn" id="favBtn" title="Dodaj do ulubionych">❤</button>
@@ -148,10 +149,10 @@ class CurrentWeatherComponent extends HTMLElement {
                 <div class="weather-icon">${getWeatherEmoji(weather.main)}</div>
                 <div>
                     <div class="temperature">${formatTemperature(
-                        main.temp
+                        main.temp,
                     )}</div>
                     <div class="description">${formatWeatherDescription(
-                        weather.description
+                        weather.description,
                     )}</div>
                 </div>
             </div>
@@ -160,14 +161,14 @@ class CurrentWeatherComponent extends HTMLElement {
                 <div class="detail-item">
                     <span class="detail-label">Odczuwalna</span>
                     <div class="detail-value">${formatTemperature(
-                        main.feels_like
+                        main.feels_like,
                     )}</div>
                 </div>
                 
                 <div class="detail-item">
                     <span class="detail-label">Wilgotność</span>
                     <div class="detail-value">${formatHumidity(
-                        main.humidity
+                        main.humidity,
                     )}</div>
                 </div>
 
@@ -175,7 +176,7 @@ class CurrentWeatherComponent extends HTMLElement {
                     <span class="detail-label">Wiatr</span>
                     <div class="detail-value">
                         ${formatWindSpeed(
-                            wind.speed
+                            wind.speed,
                         )} <span class="detail-sub">km/h</span>
                     </div>
                     <div style="font-size: 0.8rem; opacity: 0.8; margin-top: 0.2rem;">
@@ -186,7 +187,7 @@ class CurrentWeatherComponent extends HTMLElement {
                 <div class="detail-item">
                     <span class="detail-label">Ciśnienie</span>
                     <div class="detail-value">${formatPressure(
-                        main.pressure
+                        main.pressure,
                     )}</div>
                 </div>
 
@@ -201,9 +202,35 @@ class CurrentWeatherComponent extends HTMLElement {
 
         // Podepnij serce
         const favBtn = this.shadowRoot.getElementById('favBtn');
-        favBtn.addEventListener('click', () => {
-            stateManager.toggleFavorite(this.weatherData.name);
-        });
+        if (favBtn) {
+            console.log('❤️ Podłączam event listener na serce');
+
+            // Usuń stare listenery (klonowanie elementu)
+            const newFavBtn = favBtn.cloneNode(true);
+            favBtn.parentNode.replaceChild(newFavBtn, favBtn);
+
+            newFavBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('❤️ Klikam na serce!', this.weatherData.name);
+
+                // Wymagaj zalogowania
+                if (!authService.isAuthenticated()) {
+                    console.log('❌ Nie zalogowany');
+                    alert('Zaloguj się, aby dodawać do ulubionych');
+                    // pokaż modal logowania
+                    const loginWidget = document.getElementById('loginWidget');
+                    const modal =
+                        loginWidget?.shadowRoot?.getElementById('modal');
+                    modal?.classList.remove('hidden');
+                    return;
+                }
+
+                console.log('✅ Zalogowany, dodaję do ulubionych');
+                stateManager.toggleFavorite(this.weatherData.name);
+                this.updateHeartStatus();
+            });
+        }
 
         this.updateHeartStatus();
     }

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pl">
   <head>
     <meta charset="UTF-8" />
@@ -13,13 +13,32 @@
   <body>
     <div id="root" class="container">
       <header class="header">
-        <h1>🌤️ Weather App</h1>
-        <p class="subtitle">Sprawdź pogodę dla swojego miasta</p>
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+          "
+        >
+          <div>
+            <h1>🌤️ Weather App</h1>
+            <p class="subtitle">Sprawdź pogodę dla swojego miasta</p>
+          </div>
+          <button id="authBtn" class="auth-btn">Zaloguj się</button>
+        </div>
       </header>
 
       <main class="main-content">
+        <!-- Login Component -->
+        <weather-login id="loginWidget"></weather-login>
+
         <!-- Search Component -->
         <weather-search id="searchWidget"></weather-search>
+
+        <!-- Search History -->
+        <search-history id="searchHistory"></search-history>
 
         <weather-favorites></weather-favorites>
 
