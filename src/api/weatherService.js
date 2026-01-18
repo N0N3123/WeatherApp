@@ -141,7 +141,7 @@ class WeatherService {
             url.searchParams.append('longitude', coords.longitude);
             url.searchParams.append(
                 'daily',
-                'weather_code,temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum,wind_speed_10m_max'
+                'weather_code,temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum,wind_speed_10m_max,sunrise,sunset'
             );
             url.searchParams.append('timezone', coords.timezone);
             url.searchParams.append('temperature_unit', 'celsius');
@@ -331,6 +331,12 @@ class WeatherService {
                 rain: {
                     '1h': daily.precipitation_sum[i] || 0,
                 },
+                sunrise_ts: daily.sunrise?.[i]
+                    ? Math.floor(new Date(daily.sunrise[i]).getTime() / 1000)
+                    : null,
+                sunset_ts: daily.sunset?.[i]
+                    ? Math.floor(new Date(daily.sunset[i]).getTime() / 1000)
+                    : null,
             })),
             city: {
                 name: coords.name,

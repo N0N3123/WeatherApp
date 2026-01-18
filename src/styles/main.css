@@ -120,7 +120,7 @@ button {
 
 /* Container */
 .container {
-  max-width: 1200px;
+  max-width: min(1400px, 95vw);
   margin: 0 auto;
   padding: var(--space-md);
 }

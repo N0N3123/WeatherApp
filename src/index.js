@@ -12,6 +12,8 @@ import { stateManager } from './state/stateManager.js';
 import './components/CurrentWeather.js';
 import './components/Search.js';
 import './components/Forecast.js';
+import './components/DetailedForecast.js';
+import './components/TodayHighlights.js';
 import './components/Chart.js';
 import './components/HistoricalChart.js';
 import './components/Favorites.js';

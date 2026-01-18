@@ -60,7 +60,6 @@ class CurrentWeatherComponent extends HTMLElement {
                     min-height: 300px;
                     display: flex;
                     flex-direction: column;
-                    justify-content: space-between;
                 }
                 .header-row {
                     display: flex;
