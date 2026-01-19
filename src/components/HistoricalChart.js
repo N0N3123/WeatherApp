@@ -389,45 +389,85 @@ class HistoricalChartComponent extends HTMLElement {
         const loadBtn = this.shadowRoot.querySelector('#loadBtn');
         const canvas = this.shadowRoot.querySelector('#historicalCanvas');
 
+        // 1. KONFIGURACJA DAT GRANICZNYCH
+        const MIN_DATE = '1940-01-01'; // Początek danych w Open-Meteo
         const today = new Date();
-        const endDate = new Date(today);
-        endDate.setDate(today.getDate() - 1);
-        const startDate = new Date(endDate);
-        startDate.setDate(endDate.getDate() - 7);
+        const maxDateStr = today.toISOString().split('T')[0]; // Dzisiejsza data (YYYY-MM-DD)
 
-        startDateInput.valueAsDate = startDate;
-        endDateInput.valueAsDate = endDate;
+        // 2. Ustawienie blokad w HTML (Inputy nie pozwolą wybrać spoza zakresu)
+        startDateInput.min = MIN_DATE;
+        startDateInput.max = maxDateStr;
 
+        endDateInput.min = MIN_DATE;
+        endDateInput.max = maxDateStr;
+
+        // 3. Ustawienie domyślnych wartości (ostatnie 7 dni)
+        const defaultEnd = new Date(today);
+        defaultEnd.setDate(today.getDate() - 1); // Wczoraj (żeby mieć pełne dane)
+        const defaultStart = new Date(defaultEnd);
+        defaultStart.setDate(defaultEnd.getDate() - 7); // Tydzień temu
+
+        startDateInput.valueAsDate = defaultStart;
+        endDateInput.valueAsDate = defaultEnd;
+
+        // 4. OBSŁUGA KLIKNIĘCIA "ZAŁADUJ"
         loadBtn.addEventListener('click', () => {
-            const startDate = startDateInput.value;
-            const endDate = endDateInput.value;
+            const startVal = startDateInput.value;
+            const endVal = endDateInput.value;
             const city = stateManager.get('currentCity');
             const selectedMetrics = this.getSelectedMetrics();
 
-            if (!startDate || !endDate)
+            // --- WALIDACJA (Logika biznesowa) ---
+            if (!startVal || !endVal) {
                 return alert('Wybierz oba zakresy dat!');
-            if (new Date(startDate) >= new Date(endDate))
-                return alert('Data początkowa musi być przed datą końcową!');
-            if (selectedMetrics.length === 0)
-                return alert('Wybierz co najmniej jedną metryką!');
+            }
 
+            // Sprawdzenie czy data nie jest sprzed 1940
+            if (startVal < MIN_DATE) {
+                return alert(
+                    'Dane historyczne są dostępne dopiero od 01.01.1940 roku.',
+                );
+            }
+
+            // Sprawdzenie czy data nie jest z przyszłości
+            if (endVal > maxDateStr || startVal > maxDateStr) {
+                return alert(
+                    'Nie można pobrać prognozy w tym miejscu. Wybierz datę dzisiejszą lub z przeszłości.',
+                );
+            }
+
+            // Sprawdzenie czy początek jest przed końcem
+            if (startVal >= endVal) {
+                return alert(
+                    'Data początkowa musi być wcześniejsza niż data końcowa!',
+                );
+            }
+
+            if (selectedMetrics.length === 0) {
+                return alert(
+                    'Zaznacz co najmniej jedną metrykę (np. Temperatura)!',
+                );
+            }
+
+            // --- WYSYŁANIE ZAPYTANIA ---
             stateManager.setHistoricalData(null);
 
             const loading = this.shadowRoot.querySelector('.loading');
             if (loading) {
-                loading.textContent = 'Ładowanie danych...';
+                loading.textContent = 'Ładowanie danych historycznych...';
                 loading.classList.remove('hidden');
             }
 
             this.dispatchEvent(
                 new CustomEvent('historical-requested', {
-                    detail: { city, startDate, endDate },
+                    detail: { city, startDate: startVal, endDate: endVal },
                     bubbles: true,
                     composed: true,
                 }),
             );
         });
 
+        // --- PONIŻEJ OBSŁUGA WYKRESU (ZOOM, PAN) BEZ ZMIAN ---
         const zoomInBtn = this.shadowRoot.querySelector('#zoomInBtn');
         const zoomOutBtn = this.shadowRoot.querySelector('#zoomOutBtn');
         const rangeSlider = this.shadowRoot.querySelector('#rangeSlider');

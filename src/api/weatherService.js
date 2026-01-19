@@ -197,17 +197,6 @@ class WeatherService {
         }
     }
 
-    async getMultipleCities(cities) {
-        try {
-            const promises = cities.map((city) => this.getCurrentWeather(city));
-            const results = await Promise.all(promises);
-            return results;
-        } catch (error) {
-            console.error('❌ Błąd getMultipleCities:', error);
-            throw new Error(`Błąd pobierania wielu miast: ${error.message}`);
-        }
-    }
-
     transformCurrentWeather(data, coords) {
         const current = data.current;
         const hourly = data.hourly;
@@ -319,11 +308,8 @@ class WeatherService {
         return {
             timestamps: daily.time,
             temperature: temperatureAvg,
-            humidity: [],
-            dewPoint: [], // Archive API nie zwraca dew_point_2m_mean
             precipitation: daily.precipitation_sum || [],
             windSpeed: daily.wind_speed_10m_max || [],
-            uvIndex: [],
             coordinates: coords,
             temperatureMax: daily.temperature_2m_max || [],
             temperatureMin: daily.temperature_2m_min || [],

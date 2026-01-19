@@ -81,28 +81,6 @@ export function formatPressure(pressure) {
     return `${pressure} hPa`;
 }
 
-export function getDayOfWeek(timestamp) {
-    const date = new Date(timestamp * 1000);
-    const days = [
-        'Niedziela',
-        'Poniedziałek',
-        'Wtorek',
-        'Środa',
-        'Czwartek',
-        'Piątek',
-        'Sobota',
-    ];
-    return days[date.getDay()];
-}
-
 export function formatRain(rain) {
     return `${(rain || 0).toFixed(1)} mm`;
-}
-
-export function formatUVIndex(uvi) {
-    if (uvi <= 2) return '🟢 Niski';
-    if (uvi <= 5) return '🟡 Umiarkowany';
-    if (uvi <= 7) return '🟠 Wysoki';
-    if (uvi <= 10) return '🔴 Bardzo wysoki';
-    return '🟣 Ekstremalny';
 }

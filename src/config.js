@@ -25,14 +25,3 @@ export const CONFIG = {
         THEME: 'weather_theme',
     },
 };
-
-export const CSS_VARIABLES = {
-    PRIMARY: '#3498db',
-    SECONDARY: '#e74c3c',
-    SUCCESS: '#2ecc71',
-    WARNING: '#f39c12',
-    DARK: '#2c3e50',
-    LIGHT: '#ecf0f1',
-    RADIUS: '8px',
-    SHADOW: '0 2px 8px rgba(0, 0, 0, 0.1)',
-};

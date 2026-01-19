@@ -7,11 +7,6 @@ export function isValidTemperature(temp) {
     return typeof temp === 'number' && temp > -100 && temp < 60;
 }
 
-export function isValidAPIKey(apiKey) {
-    if (!apiKey) return false;
-    return apiKey.length > 10 && apiKey !== 'TU_WSTAW_TWOJ_KLUCZ_API';
-}
-
 export function isValidWeatherData(data) {
     return (
         data &&
@@ -44,12 +39,4 @@ export function isValidURL(url) {
     } catch {
         return false;
     }
-}
-
-export function sanitizeString(str) {
-    if (typeof str !== 'string') return '';
-
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
 }

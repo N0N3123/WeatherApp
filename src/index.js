@@ -3,6 +3,7 @@ import { weatherService } from './api/weatherService.js';
 import { authService } from './api/authService.js';
 import { stateManager } from './state/stateManager.js';
 
+// Import komponentów
 import './components/Login.js';
 import './components/SearchHistory.js';
 import './components/CurrentWeather.js';
@@ -74,6 +75,7 @@ class WeatherApp {
     }
 
     setupEventListeners() {
+        // 1. Wyszukiwanie z paska (Search Widget)
         this.elements.searchWidget.addEventListener('search', (e) => {
             const city = e.detail.city;
             this.fetchWeatherData(city);
@@ -81,6 +83,26 @@ class WeatherApp {
 
         this.elements.searchWidget.addEventListener('error', (e) => {
             this.showError(e.detail.message);
+        });
+
+        // 2. Kliknięcie w Historię Wyszukiwania
+        if (this.elements.searchHistory) {
+            this.elements.searchHistory.addEventListener(
+                'history-select',
+                (e) => {
+                    const city = e.detail.city;
+                    console.log('📜 Wybrano z historii:', city);
+
+                    // ZMIANA: Usunięto wpisywanie miasta do paska input
+                    // Bezpośrednio pobieramy dane
+                    this.fetchWeatherData(city);
+                },
+            );
+        }
+
+        // 3. Obsługa ulubionych (jeśli zajdzie potrzeba globalnej obsługi)
+        document.addEventListener('favorite-selected', (e) => {
+            this.fetchWeatherData(e.detail.city);
         });
 
         this.elements.currentWeather.addEventListener('weather-loaded', (e) => {
@@ -146,7 +168,6 @@ class WeatherApp {
     async init() {
         console.log('🚀 WeatherApp inicjalizacja - Open-Meteo API');
 
-        // Jeśli sesja istnieje, ustaw user i favorites
         const session = authService.getCurrentSession();
         if (session) {
             stateManager.loginUser({
@@ -156,7 +177,6 @@ class WeatherApp {
         }
 
         const savedCity = stateManager.get('currentCity');
-
         const cityToLoad = savedCity || CONFIG.APP.DEFAULT_CITY;
 
         console.log(`🌍 Wczytuję miasto startowe: ${cityToLoad}`);

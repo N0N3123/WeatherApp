@@ -1,4 +1,3 @@
-import { CONFIG } from '../config.js';
 import { authService } from '../api/authService.js';
 
 class StateManager {

@@ -1,12 +1,9 @@
 import { stateManager } from '../state/stateManager.js';
 import {
     formatTemperature,
-    formatTime,
     getWeatherEmoji,
     formatWindSpeed,
-    formatWindDirection,
-    formatHumidity,
-    formatPressure,
+    formatRain,
 } from '../utils/formatters.js';
 
 class DetailedForecastComponent extends HTMLElement {
@@ -486,7 +483,7 @@ class DetailedForecastComponent extends HTMLElement {
 
         // Szczegóły
         this.shadowRoot.getElementById('precipitation').textContent =
-            day.rain['1h'] + ' mm';
+            formatRain(day.rain['1h']);
         this.shadowRoot.getElementById('windSpeed').textContent =
             formatWindSpeed(day.wind.speed);
         this.shadowRoot.getElementById('weatherStatus').textContent =
