@@ -38,14 +38,24 @@ template.innerHTML = `
         }
         .history-list {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            grid-auto-rows: minmax(120px, auto);
-            gap: 1.5rem;
+            grid-template-columns: repeat(2, 1fr); /* Domyślnie 2 kolumny */
+            gap: 1rem;
             overflow-y: auto;
             overflow-x: hidden;
             padding-right: 0.5rem;
             max-height: 290px;
         }
+        
+        /* --- POPRAWKA DLA MAŁYCH EKRANÓW (Mobile S/M) --- */
+        @media (max-width: 480px) {
+            .history-list {
+                grid-template-columns: 1fr; /* 1 kolumna na małych ekranach */
+            }
+            .history-container {
+                padding: 1rem; /* Mniejszy padding kontenera */
+            }
+        }
+
         .history-list::-webkit-scrollbar {
             width: 6px;
         }
@@ -56,9 +66,6 @@ template.innerHTML = `
         .history-list::-webkit-scrollbar-thumb {
             background: #667eea;
             border-radius: 10px;
-        }
-        .history-list::-webkit-scrollbar-thumb:hover {
-            background: #5568d3;
         }
         .history-item {
             background: white;
@@ -71,6 +78,7 @@ template.innerHTML = `
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            min-width: 0; /* Zapobiega rozpychaniu flexa */
         }
         .history-item:hover {
             transform: translateY(-2px);
@@ -82,24 +90,29 @@ template.innerHTML = `
             justify-content: space-between;
             align-items: flex-start;
             margin-bottom: 0.5rem;
+            gap: 0.5rem;
         }
         .history-item-city {
             font-weight: 600;
             color: #333;
             font-size: 1.05rem;
             flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         .history-item-temp {
             color: #667eea;
             font-size: 0.95rem;
             font-weight: 600;
-            text-align: right;
             white-space: nowrap;
-            margin-left: 0.5rem;
         }
         .history-item-condition {
             color: #999;
             font-size: 0.85rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         .history-item-footer {
             display: flex;
@@ -115,7 +128,7 @@ template.innerHTML = `
             background: #ff6b6b;
             color: white;
             border: none;
-            padding: 0.3rem 0.6rem;
+            padding: 0.4rem;
             border-radius: 4px;
             cursor: pointer;
             font-size: 0.8rem;
@@ -123,18 +136,14 @@ template.innerHTML = `
             width: 100%;
             transition: background 0.3s;
         }
-        .delete-btn:hover {
-            background: #ff5252;
-        }
         .empty {
             text-align: center;
             color: #999;
             padding: 2rem;
             font-style: italic;
+            grid-column: 1 / -1;
         }
-        .hidden {
-            display: none !important;
-        }
+        .hidden { display: none !important; }
     </style>
 
     <div class="history-container hidden" id="historyContainer">
@@ -183,23 +192,24 @@ class SearchHistoryComponent extends HTMLElement {
         this.historyList.innerHTML = history
             .map(
                 (entry) => `
-                <div class="history-item">
-                    <div class="history-item-header">
-                        <div class="history-item-city">${entry.city}</div>
-                        <div class="history-item-temp">${entry.temperature}°C</div>
-                    </div>
-                    <div class="history-item-footer">
-                        <div class="history-item-condition">${entry.condition}</div>
-                        <div class="history-item-date">${new Date(entry.timestamp).toLocaleDateString('pl-PL')}</div>
-                    </div>
-                    <button class="delete-btn" data-id="${entry.id}" style="margin-top: 0.5rem;">Usuń</button>
+            <div class="history-item">
+                <div class="history-item-header">
+                    <div class="history-item-city" title="${entry.city}">${entry.city}</div>
+                    <div class="history-item-temp">${Math.round(entry.temperature)}°C</div>
                 </div>
-            `,
+                <div class="history-item-footer">
+                    <div class="history-item-condition">${entry.condition}</div>
+                    <div class="history-item-date">${new Date(entry.timestamp).toLocaleDateString('pl-PL')}</div>
+                </div>
+                <button class="delete-btn" data-id="${entry.id}">Usuń</button>
+            </div>
+        `,
             )
             .join('');
 
         this.shadowRoot.querySelectorAll('.delete-btn').forEach((btn) => {
             btn.addEventListener('click', (e) => {
+                e.stopPropagation(); // Ważne: żeby nie klikało w kafel
                 const entryId = e.target.dataset.id;
                 authService.deleteHistoryEntry(entryId);
                 this.render();

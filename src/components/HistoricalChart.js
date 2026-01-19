@@ -4,8 +4,8 @@ class HistoricalChartComponent extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
+        this.chart = null;
         this.historicalData = null;
-        this.unsubscribe = null;
         this.zoomLevel = 1;
         this.panOffset = 0;
         this.isDragging = false;
@@ -53,6 +53,8 @@ class HistoricalChartComponent extends HTMLElement {
                     border-radius: 8px;
                     padding: 1rem;
                     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                    max-width: 100%;
+                    overflow: hidden;
                 }
 
                 .controls {
@@ -73,11 +75,12 @@ class HistoricalChartComponent extends HTMLElement {
                     font-weight: 600;
                     color: #333;
                     cursor: default;
+                    font-size: 0.9rem;
                 }
 
                 input[type="date"],
                 select {
-                    padding: 0.5rem 0.75rem;
+                    padding: 0.5rem;
                     border: 1px solid #ddd;
                     border-radius: 4px;
                     font-size: 0.9rem;
@@ -85,8 +88,16 @@ class HistoricalChartComponent extends HTMLElement {
 
                 .metrics-group {
                     display: flex;
-                    gap: 1.5rem;
+                    gap: 1rem;
                     align-items: center;
+                    flex-wrap: wrap;
+                }
+                .metrics-group > label {
+                    font-weight: 600;
+                    color: #333;
+                    font-size: 0.9rem;
+                    cursor: default;
+                    margin-right: 0.5rem;
                 }
 
                 .metric-checkbox {
@@ -115,6 +126,7 @@ class HistoricalChartComponent extends HTMLElement {
                     cursor: pointer;
                     font-weight: 500;
                     color: #333;
+                    font-size: 0.9rem;
                 }
 
                 button {
@@ -126,10 +138,21 @@ class HistoricalChartComponent extends HTMLElement {
                     cursor: pointer;
                     font-weight: 600;
                     transition: background 0.3s;
+                    font-size: 0.9rem;
                 }
 
                 button:hover {
                     background: #5568d3;
+                }
+
+                /* --- FIX DLA MOBILE S/M --- */
+                @media (max-width: 500px) {
+                    .controls { flex-direction: column; align-items: stretch; gap: 0.8rem; }
+                    .control-group { flex-direction: column; align-items: flex-start; width: 100%; }
+                    .control-group label { margin-bottom: 0.2rem; }
+                    .control-group input { width: 100%; }
+                    .metrics-group { justify-content: flex-start; gap: 0.5rem; }
+                    button#loadBtn { width: 100%; margin-top: 0.5rem; }
                 }
 
                 .zoom-controls {
@@ -145,13 +168,16 @@ class HistoricalChartComponent extends HTMLElement {
 
                 .zoom-controls button {
                     padding: 0.5rem 1rem;
-                    font-size: 14px;
+                    font-size: 1rem; /* Większe ikony */
                     background: #667eea;
                     color: white;
                     border: none;
                     border-radius: 4px;
                     cursor: pointer;
                     transition: background 0.3s;
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
                 }
 
                 .zoom-controls button:hover {
@@ -161,32 +187,36 @@ class HistoricalChartComponent extends HTMLElement {
                 .slider-container {
                     display: flex;
                     align-items: center;
-                    gap: 0.5rem;
+                    gap: 0.8rem;
                     flex: 1;
                     min-width: 200px;
                 }
 
                 .slider-container label {
                     font-weight: 600;
-                    font-size: 14px;
+                    font-size: 0.9rem;
+                    color: #555;
+                    white-space: nowrap;
                 }
 
                 .slider-container input[type="range"] {
                     flex: 1;
-                    min-width: 150px;
+                    min-width: 100px;
                     cursor: pointer;
                 }
 
                 .chart-wrapper {
                     position: relative;
-                    height: 400px;
+                    height: 350px;
                     margin-bottom: 1rem;
+                    width: 100%;
+                    overflow: hidden;
                 }
 
                 canvas {
                     display: block;
                     width: 100% !important;
-                    height: 400px !important;
+                    height: 350px !important;
                     cursor: crosshair;
                 }
 
@@ -194,7 +224,7 @@ class HistoricalChartComponent extends HTMLElement {
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    height: 400px;
+                    height: 350px;
                     color: #999;
                     position: absolute;
                     top: 0;
@@ -250,13 +280,9 @@ class HistoricalChartComponent extends HTMLElement {
                     flex-shrink: 0;
                 }
 
-                .tooltip-value {
-                    font-weight: 500;
-                }
-
                 .stats {
                     display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+                    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
                     gap: 1rem;
                     margin-top: 1.5rem;
                     width: 100%;
@@ -276,7 +302,7 @@ class HistoricalChartComponent extends HTMLElement {
                 }
 
                 .stat-value {
-                    font-size: 1.5rem;
+                    font-size: 1.4rem;
                     font-weight: 700;
                     color: #667eea;
                 }
@@ -314,7 +340,7 @@ class HistoricalChartComponent extends HTMLElement {
                         <label>Do daty:</label>
                         <input type="date" id="endDate">
                     </div>
-                    <div class="control-group metrics-group">
+                    <div class="metrics-group">
                         <label>Metryki:</label>
                         <label class="metric-checkbox">
                             <input type="checkbox" id="tempCheckbox" value="temperature" checked>
@@ -333,8 +359,8 @@ class HistoricalChartComponent extends HTMLElement {
                 </div>
 
                 <div class="zoom-controls">
-                    <button id="zoomInBtn" title="Powiększ (Zoom In)">🔍+</button>
-                    <button id="zoomOutBtn" title="Pomniejsz (Zoom Out)">🔍-</button>
+                    <button id="zoomInBtn" title="Powiększ">🔍 +</button>
+                    <button id="zoomOutBtn" title="Pomniejsz">🔍 -</button>
                     <div class="slider-container" id="sliderContainer">
                         <label>Przesunięcie:</label>
                         <input type="range" id="rangeSlider" min="0" max="100" value="0">
@@ -348,7 +374,9 @@ class HistoricalChartComponent extends HTMLElement {
                     <canvas id="historicalCanvas"></canvas>
                     <div class="tooltip" id="tooltip"></div>
                 </div>
-                <small style="text-align: center; display: block; color: #666; margin-top: 0.5rem;">💡 Tip: Przytrzymaj LPM i przeciągnij aby przesunąć wykres</small>
+                <small style="text-align: center; display: block; color: #666; margin-top: 0.5rem; font-size: 0.8rem;">
+                    💡 Tip: Przytrzymaj LPM i przeciągnij aby przesunąć wykres
+                </small>
 
                 <div class="stats" id="statsContainer"></div>
             </div>
@@ -434,9 +462,7 @@ class HistoricalChartComponent extends HTMLElement {
             }
         });
 
-        canvas?.addEventListener('mouseleave', () => {
-            this.handleMouseLeave();
-        });
+        canvas?.addEventListener('mouseleave', () => this.handleMouseLeave());
 
         canvas?.addEventListener('mousedown', (e) => {
             if (this.zoomLevel <= 1) return;
@@ -449,9 +475,8 @@ class HistoricalChartComponent extends HTMLElement {
         document.addEventListener('mouseup', () => {
             if (this.isDragging) {
                 this.isDragging = false;
-                const canvas =
-                    this.shadowRoot.querySelector('#historicalCanvas');
-                if (canvas) canvas.style.cursor = 'crosshair';
+                const c = this.shadowRoot.querySelector('#historicalCanvas');
+                if (c) c.style.cursor = 'crosshair';
             }
         });
     }
@@ -465,10 +490,8 @@ class HistoricalChartComponent extends HTMLElement {
             return;
 
         const canvas = this.shadowRoot.querySelector('#historicalCanvas');
-        const tooltip = this.shadowRoot.querySelector('#tooltip');
         const rect = canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
 
         const scaleX = canvas.width / rect.width;
         const canvasX = x * scaleX;
@@ -476,64 +499,47 @@ class HistoricalChartComponent extends HTMLElement {
         const chartWidth =
             canvas.width - this.padding.left - this.padding.right;
         const pointCount = this.chartData.labels.length;
-
         if (pointCount === 0) return;
 
         const pointSpacing =
             pointCount > 1 ? chartWidth / (pointCount - 1) : chartWidth;
-
-        // Find closest point index based on X position
         let closestIndex = Math.round(
             (canvasX - this.padding.left) / pointSpacing,
         );
         closestIndex = Math.max(0, Math.min(pointCount - 1, closestIndex));
 
-        // Check if mouse is within reasonable distance
         const pointX = this.padding.left + closestIndex * pointSpacing;
-        const distanceX = Math.abs(canvasX - pointX);
-
-        if (distanceX < pointSpacing / 2 + 20) {
+        if (Math.abs(canvasX - pointX) < pointSpacing / 2 + 20) {
             this.hoveredPoint = closestIndex;
             this.showTooltip(closestIndex, e, rect);
             this.drawChart();
         } else {
-            this.hoveredPoint = null;
-            tooltip.classList.remove('visible');
-            this.drawChart();
+            this.handleMouseLeave();
         }
     }
 
     showTooltip(index, e, rect) {
         const tooltip = this.shadowRoot.querySelector('#tooltip');
-
         let html = `<div class="tooltip-date">${this.chartData.labels[index]}</div>`;
-
-        this.chartData.datasets.forEach((dataset) => {
-            const value = dataset.data[index];
-            if (value !== undefined && value !== null) {
+        this.chartData.datasets.forEach((d) => {
+            const val = d.data[index];
+            if (val != null) {
                 html += `
                     <div class="tooltip-item">
-                        <span class="tooltip-color" style="background: ${dataset.borderColor}"></span>
-                        <span class="tooltip-value">${dataset.label}: ${value.toFixed(1)}</span>
-                    </div>
-                `;
+                        <span class="tooltip-color" style="background:${d.borderColor}"></span>
+                        <span>${d.label}: ${val.toFixed(1)}</span>
+                    </div>`;
             }
         });
-
         tooltip.innerHTML = html;
 
-        let tooltipX = e.clientX - rect.left + 15;
-        let tooltipY = e.clientY - rect.top - 10;
+        let tx = e.clientX - rect.left + 15;
+        let ty = e.clientY - rect.top - 10;
+        if (tx + 180 > rect.width) tx = e.clientX - rect.left - 180;
+        if (ty < 10) ty = e.clientY - rect.top + 20;
 
-        if (tooltipX + 200 > rect.width) {
-            tooltipX = e.clientX - rect.left - 200;
-        }
-        if (tooltipY < 10) {
-            tooltipY = e.clientY - rect.top + 20;
-        }
-
-        tooltip.style.left = tooltipX + 'px';
-        tooltip.style.top = tooltipY + 'px';
+        tooltip.style.left = tx + 'px';
+        tooltip.style.top = ty + 'px';
         tooltip.classList.add('visible');
     }
 
@@ -545,16 +551,14 @@ class HistoricalChartComponent extends HTMLElement {
     }
 
     updateControlsVisibility() {
-        const sliderContainer =
-            this.shadowRoot.querySelector('#sliderContainer');
-        const rangeSlider = this.shadowRoot.querySelector('#rangeSlider');
-
+        const container = this.shadowRoot.querySelector('#sliderContainer');
+        const slider = this.shadowRoot.querySelector('#rangeSlider');
         if (this.zoomLevel <= 1) {
-            sliderContainer.style.display = 'none';
+            container.style.display = 'none';
             this.panOffset = 0;
-            if (rangeSlider) rangeSlider.value = 0;
+            if (slider) slider.value = 0;
         } else {
-            sliderContainer.style.display = 'flex';
+            container.style.display = 'flex';
         }
     }
 
@@ -724,18 +728,20 @@ class HistoricalChartComponent extends HTMLElement {
         const ctx = canvas.getContext('2d');
         const container = canvas.parentElement;
 
+        // Retina fix
         canvas.width = container.clientWidth * 2;
-        canvas.height = 400 * 2;
+        canvas.height = 350 * 2;
         ctx.scale(2, 2);
 
         const width = container.clientWidth;
-        const height = 400;
+        const height = 350;
 
         ctx.clearRect(0, 0, width, height);
 
         const chartWidth = width - this.padding.left - this.padding.right;
         const chartHeight = height - this.padding.top - this.padding.bottom;
 
+        // Znajdź min/max
         let globalMin = Infinity;
         let globalMax = -Infinity;
 
@@ -749,108 +755,71 @@ class HistoricalChartComponent extends HTMLElement {
             }
         });
 
-        const range = globalMax - globalMin;
+        if (globalMin === Infinity) {
+            globalMin = 0;
+            globalMax = 10;
+        }
+        const range = globalMax - globalMin || 1;
         globalMin -= range * 0.1;
         globalMax += range * 0.1;
 
-        if (globalMin === globalMax) {
-            globalMin -= 1;
-            globalMax += 1;
-        }
-
-        // Draw grid
+        // Rysuj siatkę i etykiety Y
         ctx.strokeStyle = '#eee';
         ctx.lineWidth = 1;
+        ctx.fillStyle = '#666';
+        ctx.font = 'bold 11px sans-serif'; // ZWIĘKSZONO WAGĘ CZCIONKI
+        ctx.textAlign = 'right';
 
-        const ySteps = 6;
+        const ySteps = 5;
         for (let i = 0; i <= ySteps; i++) {
             const y = this.padding.top + (chartHeight / ySteps) * i;
             ctx.beginPath();
             ctx.moveTo(this.padding.left, y);
             ctx.lineTo(width - this.padding.right, y);
             ctx.stroke();
-        }
 
-        ctx.fillStyle = '#666';
-        ctx.font = '11px sans-serif';
-        ctx.textAlign = 'right';
-
-        for (let i = 0; i <= ySteps; i++) {
             const value = globalMax - (globalMax - globalMin) * (i / ySteps);
-            const y = this.padding.top + (chartHeight / ySteps) * i;
             ctx.fillText(value.toFixed(1), this.padding.left - 10, y + 4);
         }
 
+        // Rysuj etykiety X (Daty)
         ctx.textAlign = 'center';
         const pointCount = this.chartData.labels.length;
         const pointSpacing =
             pointCount > 1 ? chartWidth / (pointCount - 1) : chartWidth;
-
-        const maxLabels = Math.floor(chartWidth / 80);
+        const maxLabels = Math.floor(chartWidth / 70); // Mniej gęste etykiety
         const labelStep = Math.max(1, Math.ceil(pointCount / maxLabels));
 
         this.chartData.labels.forEach((label, i) => {
-            if (i % labelStep === 0 || i === pointCount - 1) {
+            if (i % labelStep === 0) {
                 const x = this.padding.left + i * pointSpacing;
-                ctx.save();
-                ctx.translate(x, height - this.padding.bottom + 15);
-                ctx.rotate(-Math.PI / 6);
-                ctx.textAlign = 'right';
-                ctx.fillText(label, 0, 0);
-                ctx.restore();
+                const date = new Date(label);
+                const dateStr = date.toLocaleDateString(undefined, {
+                    month: 'numeric',
+                    day: 'numeric',
+                });
+
+                ctx.fillText(dateStr, x, height - this.padding.bottom + 20);
             }
         });
 
-        this.chartData.datasets.forEach((dataset, datasetIndex) => {
+        // Rysuj serie danych
+        this.chartData.datasets.forEach((dataset) => {
             if (!dataset.data || dataset.data.length === 0) return;
-
-            ctx.beginPath();
-            ctx.moveTo(this.padding.left, this.padding.top + chartHeight);
-
-            dataset.data.forEach((value, i) => {
-                if (value === null || value === undefined) return;
-
-                const x = this.padding.left + i * pointSpacing;
-                const normalizedValue =
-                    (value - globalMin) / (globalMax - globalMin);
-                const y =
-                    this.padding.top +
-                    chartHeight -
-                    normalizedValue * chartHeight;
-
-                if (i === 0) {
-                    ctx.lineTo(x, y);
-                } else {
-                    ctx.lineTo(x, y);
-                }
-            });
-
-            const lastValidIndex = dataset.data.length - 1;
-            ctx.lineTo(
-                this.padding.left + lastValidIndex * pointSpacing,
-                this.padding.top + chartHeight,
-            );
-            ctx.closePath();
-            ctx.fillStyle = dataset.backgroundColor;
-            ctx.fill();
 
             ctx.beginPath();
             ctx.strokeStyle = dataset.borderColor;
             ctx.lineWidth = 2;
-            ctx.lineJoin = 'round';
-            ctx.lineCap = 'round';
 
             let firstPoint = true;
             dataset.data.forEach((value, i) => {
                 if (value === null || value === undefined) return;
 
                 const x = this.padding.left + i * pointSpacing;
-                const normalizedValue =
+                const normalized =
                     (value - globalMin) / (globalMax - globalMin);
                 const y =
-                    this.padding.top +
-                    chartHeight -
-                    normalizedValue * chartHeight;
+                    this.padding.top + chartHeight - normalized * chartHeight;
 
                 if (firstPoint) {
                     ctx.moveTo(x, y);
@@ -861,23 +830,18 @@ class HistoricalChartComponent extends HTMLElement {
             });
             ctx.stroke();
 
-            const showAllPoints = pointCount <= 50;
-
+            // Rysuj punkty
+            const showAll = pointCount <= 30;
             dataset.data.forEach((value, i) => {
-                if (value === null || value === undefined) return;
-
-                const isHovered = this.hoveredPoint === i;
-
-                if (!showAllPoints && !isHovered) return;
+                if (value == null) return;
+                if (!showAll && this.hoveredPoint !== i) return;
 
                 const x = this.padding.left + i * pointSpacing;
-                const normalizedValue =
+                const normalized =
                     (value - globalMin) / (globalMax - globalMin);
                 const y =
-                    this.padding.top +
-                    chartHeight -
-                    normalizedValue * chartHeight;
-
+                    this.padding.top + chartHeight - normalized * chartHeight;
+                const isHovered = this.hoveredPoint === i;
                 const radius = isHovered ? 6 : 3;
 
                 ctx.beginPath();
@@ -885,20 +849,12 @@ class HistoricalChartComponent extends HTMLElement {
                 ctx.fillStyle = isHovered ? dataset.borderColor : 'white';
                 ctx.fill();
                 ctx.strokeStyle = dataset.borderColor;
-                ctx.lineWidth = 2;
                 ctx.stroke();
-
-                if (isHovered) {
-                    ctx.beginPath();
-                    ctx.arc(x, y, radius + 4, 0, Math.PI * 2);
-                    ctx.strokeStyle = dataset.borderColor + '40';
-                    ctx.lineWidth = 3;
-                    ctx.stroke();
-                }
             });
         });
 
-        if (this.hoveredPoint !== null && this.hoveredPoint >= 0) {
+        // Linia hover
+        if (this.hoveredPoint !== null) {
             const x = this.padding.left + this.hoveredPoint * pointSpacing;
             ctx.beginPath();
             ctx.strokeStyle = '#999';
