@@ -51,7 +51,6 @@ class ForecastComponent extends HTMLElement {
 
                 .forecast-container {
                     position: relative;
-                    overflow-x: auto;
                     overflow-y: hidden;
                     max-width: 100%;
                     -webkit-overflow-scrolling: touch;
@@ -68,7 +67,7 @@ class ForecastComponent extends HTMLElement {
                     display: grid;
                     grid-template-columns: repeat(7, minmax(120px, 1fr));
                     gap: 1rem;
-                    padding: 1rem 0;
+                    padding: 1.5rem 0.5rem 3rem 0.5rem;
                     min-width: min-content;
                 }
 
@@ -80,11 +79,14 @@ class ForecastComponent extends HTMLElement {
                     text-align: center;
                     cursor: pointer;
                     transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+                    transform-origin: center center;
+                    will-change: transform;
                 }
 
                 .forecast-item:hover {
-                    transform: translateY(-8px) scale(1.05);
+                    transform: scale(1.08);
                     box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+                    z-index: 10;
                 }
 
                 .forecast-time {
