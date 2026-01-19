@@ -6,7 +6,6 @@ class SearchComponent extends HTMLElement {
         super();
         this.attachShadow({ mode: 'open' });
         this.debounceTimer = null;
-        // Rozszerzona lista miast do podpowiedzi
         this.cities = [
             'Warszawa',
             'Kraków',
@@ -108,7 +107,6 @@ class SearchComponent extends HTMLElement {
                 }
                 button:active { transform: scale(0.95); }
                 
-                /* Style dla listy podpowiedzi */
                 .suggestions {
                     position: absolute;
                     top: 100%;
@@ -121,7 +119,7 @@ class SearchComponent extends HTMLElement {
                     max-height: 200px;
                     overflow-y: auto;
                     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-                    display: none; /* Domyślnie ukryte */
+                    display: none;
                     z-index: 1000;
                 }
                 .suggestions.active {
@@ -158,11 +156,9 @@ class SearchComponent extends HTMLElement {
         const btn = this.shadowRoot.getElementById('searchBtn');
         const suggestionsBox = this.shadowRoot.getElementById('suggestions');
 
-        // Obsługa pisania (Input + Debounce)
         input.addEventListener('input', (e) => {
             const value = e.target.value.trim();
 
-            // Ukryj jeśli pusto
             if (value.length < 2) {
                 suggestionsBox.classList.remove('active');
                 return;
@@ -174,10 +170,8 @@ class SearchComponent extends HTMLElement {
             }, 300);
         });
 
-        // Obsługa przycisku Szukaj
         btn.addEventListener('click', () => this.search());
 
-        // Obsługa Entera
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 this.search();
@@ -185,9 +179,7 @@ class SearchComponent extends HTMLElement {
             }
         });
 
-        // Ukrywanie listy po kliknięciu poza
         document.addEventListener('click', (e) => {
-            // Sprawdź czy kliknięcie było wewnątrz komponentu
             if (!this.contains(e.target)) {
                 suggestionsBox.classList.remove('active');
             }
@@ -198,11 +190,10 @@ class SearchComponent extends HTMLElement {
         const suggestionsBox = this.shadowRoot.getElementById('suggestions');
         const lowerValue = value.toLowerCase();
 
-        // Filtrowanie miast
         const filtered = this.cities.filter(
             (city) =>
                 city.toLowerCase().startsWith(lowerValue) ||
-                city.toLowerCase().includes(lowerValue)
+                city.toLowerCase().includes(lowerValue),
         );
 
         if (filtered.length === 0) {
@@ -210,15 +201,13 @@ class SearchComponent extends HTMLElement {
             return;
         }
 
-        // Generowanie HTML
         suggestionsBox.innerHTML = filtered
-            .slice(0, 6) // Pokaż max 6 wyników
+            .slice(0, 6)
             .map((city) => `<div class="suggestion-item">${city}</div>`)
             .join('');
 
         suggestionsBox.classList.add('active');
 
-        // Dodanie listenerów do nowych elementów
         suggestionsBox.querySelectorAll('.suggestion-item').forEach((item) => {
             item.addEventListener('click', () => {
                 const city = item.textContent;
@@ -234,21 +223,18 @@ class SearchComponent extends HTMLElement {
         const city = input.value.trim();
 
         if (isValidCity(city)) {
-            // Zapisz w managerze
             stateManager.setCurrentCity(city);
 
-            // Wyemituj event
             this.dispatchEvent(
                 new CustomEvent('search', {
                     detail: { city },
                     bubbles: true,
                     composed: true,
-                })
+                }),
             );
 
             input.value = '';
         } else {
-            // Prosta animacja błędu
             input.style.borderColor = '#ff4757';
             setTimeout(() => (input.style.borderColor = '#e0e0e0'), 1000);
         }

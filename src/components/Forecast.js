@@ -1,10 +1,3 @@
-/**
- * Forecast Component
- * Wyświetla prognozę na 7 dni z możliwością rozszerzenia na szczegóły dnia
- * - Widok listy: grid 7 dni
- * - Widok szczegółów: pełny panel z więcej informacjami
- */
-
 import { stateManager } from '../state/stateManager.js';
 import {
     formatTemperature,
@@ -56,7 +49,6 @@ class ForecastComponent extends HTMLElement {
                     display: block;
                 }
 
-                /* ========== VIEW LIST ========== */
                 .forecast-container {
                     position: relative;
                     overflow-x: auto;
@@ -118,7 +110,6 @@ class ForecastComponent extends HTMLElement {
                     text-transform: capitalize;
                 }
 
-                /* ========== VIEW DETAIL ========== */
                 .detail-view {
                     animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
                 }
@@ -307,7 +298,6 @@ class ForecastComponent extends HTMLElement {
                     color: #666;
                 }
 
-                /* Optimizations */
                 #listView {
                                         position: absolute;
                                         top: 0;
@@ -459,13 +449,13 @@ class ForecastComponent extends HTMLElement {
                             <div class="temp-box">
                                 <div class="temp-label">Maksimum</div>
                                 <div class="temp-value">${formatTemperature(
-                                    day.main.temp_max
+                                    day.main.temp_max,
                                 )}</div>
                             </div>
                             <div class="temp-box">
                                 <div class="temp-label">Minimum</div>
                                 <div class="temp-value">${formatTemperature(
-                                    day.main.temp_min
+                                    day.main.temp_min,
                                 )}</div>
                             </div>
                         </div>
@@ -483,7 +473,7 @@ class ForecastComponent extends HTMLElement {
                         <div class="card-icon">💨</div>
                         <div class="card-label">Wiatr</div>
                         <div class="card-value">${formatWindSpeed(
-                            day.wind.speed
+                            day.wind.speed,
                         )}</div>
                     </div>
 
@@ -491,7 +481,7 @@ class ForecastComponent extends HTMLElement {
                         <div class="card-icon">🌡️</div>
                         <div class="card-label">Średnia temp.</div>
                         <div class="card-value">${formatTemperature(
-                            day.main.temp
+                            day.main.temp,
                         )}</div>
                     </div>
 
@@ -554,7 +544,7 @@ class ForecastComponent extends HTMLElement {
     showPreviousDay() {
         if (!this.forecastData) return;
         const currentIndex = this.forecastData.list.indexOf(
-            this.selectedForecast
+            this.selectedForecast,
         );
         if (currentIndex > 0) {
             this.selectedForecast = this.forecastData.list[currentIndex - 1];
@@ -565,7 +555,7 @@ class ForecastComponent extends HTMLElement {
     showNextDay() {
         if (!this.forecastData) return;
         const currentIndex = this.forecastData.list.indexOf(
-            this.selectedForecast
+            this.selectedForecast,
         );
         if (currentIndex < this.forecastData.list.length - 1) {
             this.selectedForecast = this.forecastData.list[currentIndex + 1];

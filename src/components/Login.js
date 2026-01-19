@@ -1,9 +1,3 @@
-/**
- * Login Component - Register + Login
- * 2 karty: Rejestracja i Logowanie
- * Web Component z Shadow DOM
- */
-
 import { authService } from '../api/authService.js';
 import { stateManager } from '../state/stateManager.js';
 
@@ -232,30 +226,24 @@ class LoginComponent extends HTMLElement {
         this.questionSelect =
             this.shadowRoot.getElementById('registerQuestion');
 
-        // Załaduj pytania bezpieczeństwa
         this.loadSecurityQuestions();
 
-        // Sprawdź czy user zalogowany
         if (authService.isAuthenticated()) {
             this.hideModal();
         }
 
-        // Tab switching
         this.tabBtns.forEach((btn) => {
             btn.addEventListener('click', (e) =>
                 this.switchTab(e.target.dataset.tab),
             );
         });
 
-        // Login submit
         this.loginForm.addEventListener('submit', (e) => this.handleLogin(e));
 
-        // Register submit
         this.registerForm.addEventListener('submit', (e) =>
             this.handleRegister(e),
         );
 
-        // Forgot password
         if (this.forgotLink) {
             this.forgotLink.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -289,7 +277,6 @@ class LoginComponent extends HTMLElement {
             btn.classList.toggle('active', btn.dataset.tab === tabName);
         });
 
-        // Update forms
         const contents = this.shadowRoot.querySelectorAll('.tab-content');
         contents.forEach((content) => {
             content.classList.remove('active');
@@ -401,7 +388,6 @@ class LoginComponent extends HTMLElement {
         const email = prompt('📧 Wpisz swój email:');
         if (!email) return;
 
-        // Pobierz pytanie bezpieczeństwa
         const questionData = authService.getSecurityQuestionByEmail(email);
         if (!questionData) {
             this.showMessage(
@@ -411,20 +397,17 @@ class LoginComponent extends HTMLElement {
             return;
         }
 
-        // Zapytaj o odpowiedź
         const answer = prompt(
             `❓ ${questionData.question}\n\nWpisz odpowiedź:`,
         );
         if (!answer) return;
 
-        // Weryfikuj odpowiedź
         const verifyResult = authService.verifySecurityAnswer(email, answer);
         if (!verifyResult.success) {
             this.showMessage(verifyResult.message, 'error');
             return;
         }
 
-        // Jeśli OK, zapytaj o nowe hasło
         const newPassword = prompt('🔐 Wpisz nowe hasło (min 5 znaków):');
         if (!newPassword) return;
 
@@ -433,7 +416,6 @@ class LoginComponent extends HTMLElement {
             return;
         }
 
-        // Zresetuj hasło
         const resetResult = authService.resetPasswordBySecurityQuestion(
             email,
             newPassword,

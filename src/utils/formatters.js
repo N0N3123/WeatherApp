@@ -1,40 +1,15 @@
-/**
- * Formatters - Funkcje pomocnicze do formatowania danych
- */
-
-/**
- * Formatuje temperaturę
- * @param {number} temp - Temperatura w Celsjuszach
- * @returns {string}
- */
 export function formatTemperature(temp) {
     return `${Math.round(temp)}°C`;
 }
 
-/**
- * Formatuje opis pogody
- * @param {string} description - Opis z API
- * @returns {string}
- */
 export function formatWeatherDescription(description) {
     return description.charAt(0).toUpperCase() + description.slice(1);
 }
 
-/**
- * Konwertuje prędkość wiatru m/s na km/h
- * @param {number} mps - Metrów na sekundę
- * @returns {number}
- */
 export function formatWindSpeed(mps) {
     return Math.round(mps * 3.6);
 }
 
-/**
- * Formatuje czas z timestamp'a
- * @param {number} timestamp - Unix timestamp
- * @param {string} format - Format ('time', 'date', 'datetime')
- * @returns {string}
- */
 export function formatTime(timestamp, format = 'datetime') {
     const date = new Date(timestamp * 1000);
 
@@ -53,11 +28,6 @@ export function formatTime(timestamp, format = 'datetime') {
     return date.toLocaleDateString('pl-PL', options[format]);
 }
 
-/**
- * Zwraca emoji dla warunku pogodowego
- * @param {string} main - Główny warunek (Rain, Snow, itd.)
- * @returns {string}
- */
 export function getWeatherEmoji(main) {
     const emojiMap = {
         Clear: '☀️',
@@ -80,11 +50,6 @@ export function getWeatherEmoji(main) {
     return emojiMap[main] || '🌤️';
 }
 
-/**
- * Formatuje kierunek wiatru na litery
- * @param {number} degrees - Stopnie (0-360)
- * @returns {string}
- */
 export function formatWindDirection(degrees) {
     const directions = [
         'N',
@@ -108,29 +73,14 @@ export function formatWindDirection(degrees) {
     return directions[index];
 }
 
-/**
- * Formatuje wilgotność
- * @param {number} humidity - Procenty
- * @returns {string}
- */
 export function formatHumidity(humidity) {
     return `${humidity}%`;
 }
 
-/**
- * Formatuje ciśnienie
- * @param {number} pressure - hPa
- * @returns {string}
- */
 export function formatPressure(pressure) {
     return `${pressure} hPa`;
 }
 
-/**
- * Zwraca dzień tygodnia
- * @param {number} timestamp - Unix timestamp
- * @returns {string}
- */
 export function getDayOfWeek(timestamp) {
     const date = new Date(timestamp * 1000);
     const days = [
@@ -145,20 +95,10 @@ export function getDayOfWeek(timestamp) {
     return days[date.getDay()];
 }
 
-/**
- * Formatuje sumę opadów
- * @param {number} rain - Milimetry
- * @returns {string}
- */
 export function formatRain(rain) {
     return `${(rain || 0).toFixed(1)} mm`;
 }
 
-/**
- * Formatuje wskaźnik UV
- * @param {number} uvi - Indeks UV
- * @returns {string}
- */
 export function formatUVIndex(uvi) {
     if (uvi <= 2) return '🟢 Niski';
     if (uvi <= 5) return '🟡 Umiarkowany';

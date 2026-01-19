@@ -1,11 +1,3 @@
-/**
- * Detailed Forecast Component
- * Wyświetla szczegółowy widok dla wybranego dnia
- * - Animacyjny modal/panel ze szczegółami
- * - Temperatura min/max, opady, wiatr, wilgotność
- * - Płynne przejścia między dniami
- */
-
 import { stateManager } from '../state/stateManager.js';
 import {
     formatTemperature,
@@ -30,7 +22,6 @@ class DetailedForecastComponent extends HTMLElement {
         this.render();
         this.setupEventListeners();
 
-        // Subskrypcja danych prognozy
         stateManager.subscribe('forecast', (data) => {
             this.forecast = data;
         });
@@ -39,7 +30,6 @@ class DetailedForecastComponent extends HTMLElement {
     }
 
     setupEventListeners() {
-        // Event z komponentu Forecast
         document.addEventListener('forecast-selected', (e) => {
             console.log('📅 Event forecast-selected otrzymany:', e.detail);
             this.handleDaySelected(e.detail.timestamp);
@@ -329,7 +319,6 @@ class DetailedForecastComponent extends HTMLElement {
                     opacity: 0.7;
                 }
 
-                /* Responsive */
                 @media (max-width: 600px) {
                     .modal-content {
                         border-radius: 16px 16px 0 0;
@@ -443,7 +432,7 @@ class DetailedForecastComponent extends HTMLElement {
                 const timestamp =
                     e.target.closest('.preview-item').dataset.timestamp;
                 const day = this.forecast.list.find(
-                    (d) => d.dt === parseInt(timestamp)
+                    (d) => d.dt === parseInt(timestamp),
                 );
                 if (day) {
                     this.selectedForecast = day;
@@ -529,11 +518,11 @@ class DetailedForecastComponent extends HTMLElement {
                     }" data-timestamp="${day.dt}">
                         <div class="preview-date">${date.toLocaleDateString(
                             'pl-PL',
-                            { day: 'numeric', month: 'short' }
+                            { day: 'numeric', month: 'short' },
                         )}</div>
                         <div class="preview-icon">${emoji}</div>
                         <div class="preview-temp">${formatTemperature(
-                            day.main.temp_max
+                            day.main.temp_max,
                         )}</div>
                     </div>
                 `;

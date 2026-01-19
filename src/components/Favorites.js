@@ -58,7 +58,7 @@ class FavoritesComponent extends HTMLElement {
                         <div class="chip" data-city="${city}">
                             <span>📍</span> ${city}
                         </div>
-                    `
+                    `,
                               )
                               .join('')
                 }
@@ -68,23 +68,15 @@ class FavoritesComponent extends HTMLElement {
         this.shadowRoot.querySelectorAll('.chip').forEach((chip) => {
             chip.addEventListener('click', () => {
                 const city = chip.dataset.city;
-                // Emituj event do SearchWidget (który nasłuchuje w index.js lub sam SearchWidget)
-                // Najlepiej użyć globalnego eventu na window lub document, ale tutaj strzelamy w #searchWidget
                 const searchWidget = document.getElementById('searchWidget');
                 if (searchWidget) {
-                    // Wymuś wpisanie tekstu i wysłanie
-                    // Ale ponieważ searchWidget ma metodę search(), lepiej przez stateManager
                     stateManager.setCurrentCity(city);
-                    // Ale żeby pobrać dane, musimy wywołać fetch w index.js.
-                    // Emitujemy event 'search' z poziomu tego komponentu, który index.js wyłapie?
-                    // Nie, index.js słucha na #searchWidget.
-                    // Więc dispatchujemy na #searchWidget
                     searchWidget.dispatchEvent(
                         new CustomEvent('search', {
                             detail: { city },
                             bubbles: true,
                             composed: true,
-                        })
+                        }),
                     );
                 }
             });

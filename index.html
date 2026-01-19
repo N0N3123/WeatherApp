@@ -5,24 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Weather App - Prognoza Pogody</title>
 
-    <!-- Styles -->
-    <link rel="stylesheet" href="src/styles/main.css"/>
-    <link rel="stylesheet" href="src/styles/components.css"/>
-    <link rel="stylesheet" href="src/styles/charts.css"/>
+    <link rel="stylesheet" href="src/styles/main.css" />
+    <link rel="stylesheet" href="src/styles/components.css" />
+    <link rel="stylesheet" href="src/styles/charts.css" />
   </head>
   <body>
     <div id="root" class="container">
       <header class="header">
-        <div
-          style="
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-            flex-wrap: wrap;
-          "
-        >
-          <div>
+        <div class="header-content">
+          <div class="header-text">
             <h1>🌤️ Weather App</h1>
             <p class="subtitle">Sprawdź pogodę dla swojego miasta</p>
           </div>
@@ -31,14 +22,16 @@
       </header>
 
       <main class="main-content">
-        <!-- Login Component -->
         <weather-login id="loginWidget"></weather-login>
 
-        <!-- Search Component -->
         <weather-search id="searchWidget"></weather-search>
 
-        <!-- Search History -->
-        <search-history id="searchHistory"></search-history>
+        <search-history
+          id="searchHistory"
+          class="history-section"
+        ></search-history>
+
+        <user-profile id="userProfile" class="profile-section"></user-profile>
 
         <weather-favorites></weather-favorites>
 
@@ -50,16 +43,13 @@
           <today-highlights id="todayHighlights"></today-highlights>
         </section>
 
-        <!-- Forecast Section -->
         <section class="section">
           <h2>Prognoza na 7 dni</h2>
           <weather-forecast id="forecastWidget"></weather-forecast>
         </section>
 
-        <!-- Detailed Forecast Modal -->
         <detailed-forecast id="detailedForecast"></detailed-forecast>
 
-        <!-- Charts Section -->
         <section class="section">
           <h2>Historia temperatury</h2>
           <weather-chart
@@ -68,13 +58,11 @@
           ></weather-chart>
         </section>
 
-        <!-- Historical Data Section -->
         <section class="section">
           <h2>📊 Dane historyczne (80 lat wstecz!)</h2>
           <historical-chart id="historicalChart"></historical-chart>
         </section>
 
-        <!-- Loading & Error States -->
         <div id="loadingOverlay" class="loading-overlay hidden">
           <div class="spinner"></div>
           <p>Ładowanie danych...</p>
@@ -88,7 +76,6 @@
       </footer>
     </div>
 
-    <!-- Main App Entry Point -->
     <script type="module" src="src/index.js"></script>
   </body>
 </html>

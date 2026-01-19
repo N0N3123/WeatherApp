@@ -3,24 +3,22 @@ import { authService } from '../api/authService.js';
 
 class StateManager {
     constructor() {
-        // 1. Pobierz dane z LocalStorage na starcie
         const savedUserRaw = localStorage.getItem('weather_user');
         let savedUser = null;
         if (savedUserRaw) {
             try {
                 savedUser = JSON.parse(savedUserRaw);
             } catch (e) {
-                // Stare dane w formacie string – wyczyść
                 console.warn('⚠️ Czyszczę stary format weather_user', e);
                 localStorage.removeItem('weather_user');
             }
         }
         const savedFavorites = authService.getFavorites();
-        const lastCity = localStorage.getItem('weather_last_city'); // <--- NOWE: Pobierz ostatnie miasto
+        const lastCity = localStorage.getItem('weather_last_city');
 
         this.state = {
             user: savedUser || null,
-            currentCity: lastCity || 'Warsaw', // <--- NOWE: Użyj ostatniego miasta lub Warszawy
+            currentCity: lastCity || 'Warsaw',
             currentWeather: null,
             forecast: null,
             historicalData: null,
@@ -56,13 +54,11 @@ class StateManager {
 
         obj[lastKey] = value;
 
-        // --- ZAPIS DO STORAGE ---
         if (path === 'user') {
             if (value)
                 localStorage.setItem('weather_user', JSON.stringify(value));
             else localStorage.removeItem('weather_user');
         }
-        // <--- NOWE: Zapisuj miasto przy każdej zmianie
         if (path === 'currentCity') {
             localStorage.setItem('weather_last_city', value);
         }
@@ -114,8 +110,6 @@ class StateManager {
         return this.subscribe('*', callback);
     }
 
-    // --- AKCJE ---
-
     loginUser(user) {
         this.set('user', user);
         this.set('favorites', authService.getFavorites());
@@ -151,7 +145,6 @@ class StateManager {
 
     toggleFavorite(city) {
         console.log('🔄 toggleFavorite:', city);
-        // Zawsze pobieraj świeże dane z authService
         const favorites = authService.getFavorites();
         console.log('📋 Obecne ulubione:', favorites);
 
@@ -162,7 +155,6 @@ class StateManager {
             console.log('➕ Dodaję do ulubionych:', city);
             authService.addFavorite(city);
         }
-        // Ustaw zaktualizowane ulubione
         const updated = authService.getFavorites();
         console.log('📊 Po zmianie:', updated);
         this.set('favorites', updated);

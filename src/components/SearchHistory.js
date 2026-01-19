@@ -1,8 +1,3 @@
-/**
- * SearchHistory Component - Historia wyszukań
- * Web Component - wyświetla i zarządza historią
- */
-
 import { authService } from '../api/authService.js';
 
 const template = document.createElement('template');
@@ -43,8 +38,27 @@ template.innerHTML = `
         }
         .history-list {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 1rem;
+            grid-template-columns: repeat(2, 1fr);
+            grid-auto-rows: minmax(120px, auto);
+            gap: 1.5rem;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-right: 0.5rem;
+            max-height: 290px;
+        }
+        .history-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        .history-list::-webkit-scrollbar-track {
+            background: #f0f0f0;
+            border-radius: 10px;
+        }
+        .history-list::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
+        }
+        .history-list::-webkit-scrollbar-thumb:hover {
+            background: #5568d3;
         }
         .history-item {
             background: white;
@@ -54,27 +68,44 @@ template.innerHTML = `
             cursor: pointer;
             transition: all 0.3s;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
         .history-item:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             border-color: #667eea;
         }
+        .history-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+        }
         .history-item-city {
             font-weight: 600;
             color: #333;
-            margin-bottom: 0.5rem;
-            font-size: 1.1rem;
+            font-size: 1.05rem;
+            flex: 1;
         }
         .history-item-temp {
             color: #667eea;
-            font-size: 0.9rem;
-            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-align: right;
+            white-space: nowrap;
+            margin-left: 0.5rem;
         }
         .history-item-condition {
             color: #999;
             font-size: 0.85rem;
-            margin-bottom: 0.5rem;
+        }
+        .history-item-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0.5rem;
         }
         .history-item-date {
             color: #ccc;
@@ -153,17 +184,20 @@ class SearchHistoryComponent extends HTMLElement {
             .map(
                 (entry) => `
                 <div class="history-item">
-                    <div class="history-item-city">${entry.city}</div>
-                    <div class="history-item-temp">🌡️ ${entry.temperature}°C</div>
-                    <div class="history-item-condition">${entry.condition}</div>
-                    <div class="history-item-date">${new Date(entry.timestamp).toLocaleDateString('pl-PL')}</div>
-                    <button class="delete-btn" data-id="${entry.id}">Usuń</button>
+                    <div class="history-item-header">
+                        <div class="history-item-city">${entry.city}</div>
+                        <div class="history-item-temp">${entry.temperature}°C</div>
+                    </div>
+                    <div class="history-item-footer">
+                        <div class="history-item-condition">${entry.condition}</div>
+                        <div class="history-item-date">${new Date(entry.timestamp).toLocaleDateString('pl-PL')}</div>
+                    </div>
+                    <button class="delete-btn" data-id="${entry.id}" style="margin-top: 0.5rem;">Usuń</button>
                 </div>
             `,
             )
             .join('');
 
-        // Delete handlers
         this.shadowRoot.querySelectorAll('.delete-btn').forEach((btn) => {
             btn.addEventListener('click', (e) => {
                 const entryId = e.target.dataset.id;
@@ -172,7 +206,6 @@ class SearchHistoryComponent extends HTMLElement {
             });
         });
 
-        // Click to load
         this.shadowRoot
             .querySelectorAll('.history-item')
             .forEach((item, idx) => {

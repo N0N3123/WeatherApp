@@ -1,10 +1,3 @@
-/**
- * Historical Chart Component
- * Wykresy dla danych historycznych (80 lat wstecz!)
- * Selectory dat, różne metryki, zoom
- * Wersja bez Chart.js - czyste canvas z tooltipami
- */
-
 import { stateManager } from '../state/stateManager.js';
 
 class HistoricalChartComponent extends HTMLElement {
@@ -13,13 +6,11 @@ class HistoricalChartComponent extends HTMLElement {
         this.attachShadow({ mode: 'open' });
         this.historicalData = null;
         this.unsubscribe = null;
-        // Zoom i pan state
         this.zoomLevel = 1;
         this.panOffset = 0;
         this.isDragging = false;
         this.dragStartX = 0;
         this.dragStartOffset = 0;
-        // Chart data
         this.chartData = null;
         this.hoveredPoint = null;
         this.padding = { top: 40, right: 30, bottom: 60, left: 60 };
@@ -409,7 +400,6 @@ class HistoricalChartComponent extends HTMLElement {
             );
         });
 
-        // Zoom & Pan
         const zoomInBtn = this.shadowRoot.querySelector('#zoomInBtn');
         const zoomOutBtn = this.shadowRoot.querySelector('#zoomOutBtn');
         const rangeSlider = this.shadowRoot.querySelector('#rangeSlider');
@@ -431,7 +421,6 @@ class HistoricalChartComponent extends HTMLElement {
             this.updateChartWithZoom();
         });
 
-        // Mouse events for tooltip and drag
         canvas?.addEventListener('mousemove', (e) => {
             if (this.isDragging) {
                 const deltaX = e.clientX - this.dragStartX;
@@ -747,7 +736,6 @@ class HistoricalChartComponent extends HTMLElement {
         const chartWidth = width - this.padding.left - this.padding.right;
         const chartHeight = height - this.padding.top - this.padding.bottom;
 
-        // Calculate global min/max across all datasets
         let globalMin = Infinity;
         let globalMax = -Infinity;
 
@@ -761,7 +749,6 @@ class HistoricalChartComponent extends HTMLElement {
             }
         });
 
-        // Add padding to min/max
         const range = globalMax - globalMin;
         globalMin -= range * 0.1;
         globalMax += range * 0.1;
@@ -784,7 +771,6 @@ class HistoricalChartComponent extends HTMLElement {
             ctx.stroke();
         }
 
-        // Draw Y-axis labels
         ctx.fillStyle = '#666';
         ctx.font = '11px sans-serif';
         ctx.textAlign = 'right';
@@ -795,13 +781,11 @@ class HistoricalChartComponent extends HTMLElement {
             ctx.fillText(value.toFixed(1), this.padding.left - 10, y + 4);
         }
 
-        // Draw X-axis labels
         ctx.textAlign = 'center';
         const pointCount = this.chartData.labels.length;
         const pointSpacing =
             pointCount > 1 ? chartWidth / (pointCount - 1) : chartWidth;
 
-        // Determine label step based on data density
         const maxLabels = Math.floor(chartWidth / 80);
         const labelStep = Math.max(1, Math.ceil(pointCount / maxLabels));
 
@@ -817,11 +801,9 @@ class HistoricalChartComponent extends HTMLElement {
             }
         });
 
-        // Draw each dataset
         this.chartData.datasets.forEach((dataset, datasetIndex) => {
             if (!dataset.data || dataset.data.length === 0) return;
 
-            // Draw fill
             ctx.beginPath();
             ctx.moveTo(this.padding.left, this.padding.top + chartHeight);
 
@@ -852,7 +834,6 @@ class HistoricalChartComponent extends HTMLElement {
             ctx.fillStyle = dataset.backgroundColor;
             ctx.fill();
 
-            // Draw line
             ctx.beginPath();
             ctx.strokeStyle = dataset.borderColor;
             ctx.lineWidth = 2;
@@ -880,7 +861,6 @@ class HistoricalChartComponent extends HTMLElement {
             });
             ctx.stroke();
 
-            // Draw points (only if not too many, or if hovered)
             const showAllPoints = pointCount <= 50;
 
             dataset.data.forEach((value, i) => {
@@ -918,7 +898,6 @@ class HistoricalChartComponent extends HTMLElement {
             });
         });
 
-        // Draw hover line
         if (this.hoveredPoint !== null && this.hoveredPoint >= 0) {
             const x = this.padding.left + this.hoveredPoint * pointSpacing;
             ctx.beginPath();

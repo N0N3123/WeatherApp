@@ -1,8 +1,3 @@
-/**
- * AuthService - Obsługa rejestracji, logowania, sesji
- * localStorage bez backendu, simple hash (demo purposes)
- */
-
 class AuthService {
     constructor() {
         this.USERS_KEY = 'weather_users';
@@ -10,7 +5,6 @@ class AuthService {
         this.HISTORY_KEY = 'weather_search_history';
         this.FAVORITES_KEY = 'weather_favorites';
 
-        // Pytania bezpieczeństwa
         this.SECURITY_QUESTIONS = [
             'Jak ma na imię Twoje pierwsze zwierzę domowe?',
             'W jakim mieście się urodziłeś?',
@@ -22,16 +16,11 @@ class AuthService {
             'Jakie jest imię Twojego ojca?',
         ];
 
-        // Załaduj istniejące dane lub utwórz puste
         this.ensureStorageInitialized();
     }
 
-    /**
-     * Inicjalizuj storage jeśli pusty
-     */
     ensureStorageInitialized() {
         if (!localStorage.getItem(this.USERS_KEY)) {
-            // Stwórz demo usera
             const demoUser = {
                 id: '1',
                 username: 'test',
@@ -47,7 +36,6 @@ class AuthService {
             localStorage.setItem(this.HISTORY_KEY, JSON.stringify([]));
         }
 
-        // NAPRAW strukturę ulubionych - powinna być obiektem {userId: [miasta]}
         const favKey = this.FAVORITES_KEY;
         const current = localStorage.getItem(favKey);
 
@@ -56,7 +44,6 @@ class AuthService {
         } else {
             try {
                 const parsed = JSON.parse(current);
-                // Jeśli to tablica, zamień na obiekt
                 if (Array.isArray(parsed)) {
                     console.warn(
                         '⚠️ Stara struktura ulubionych (tablica), resetuję do obiektu',
@@ -70,30 +57,16 @@ class AuthService {
         }
     }
 
-    /**
-     * Super prosty hash (demo! w production używaj bcrypt)
-     * @param {string} password
-     * @returns {string}
-     */
     hashPassword(password) {
         let hash = 0;
         for (let i = 0; i < password.length; i++) {
             const char = password.charCodeAt(i);
             hash = (hash << 5) - hash + char;
-            hash = hash & hash; // 32-bit integer
+            hash = hash & hash;
         }
         return Math.abs(hash).toString(16);
     }
 
-    /**
-     * Rejestracja nowego użytkownika
-     * @param {string} username
-     * @param {string} email
-     * @param {string} password
-     * @param {number} securityQuestionIndex - indeks pytania z listy
-     * @param {string} securityAnswer - odpowiedź na pytanie
-     * @returns {Object} {success, message, user}
-     */
     register(username, email, password, securityQuestionIndex, securityAnswer) {
         if (
             !username ||
@@ -135,12 +108,10 @@ class AuthService {
 
         const users = JSON.parse(localStorage.getItem(this.USERS_KEY)) || [];
 
-        // Sprawdź czy user już istnieje
         if (users.some((u) => u.username === username)) {
             return { success: false, message: '❌ Użytkownik już istnieje!' };
         }
 
-        // Sprawdź czy email już istnieje
         if (users.some((u) => u.email === email)) {
             return {
                 success: false,
@@ -148,7 +119,6 @@ class AuthService {
             };
         }
 
-        // Utwórz nowego użytkownika
         const newUser = {
             id: Date.now().toString(),
             username,
@@ -172,29 +142,17 @@ class AuthService {
         };
     }
 
-    /**
-     * Waliduj format emaila
-     * @param {string} email
-     * @returns {boolean}
-     */
     isValidEmail(email) {
         const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return regex.test(email);
     }
 
-    /**
-     * Logowanie
-     * @param {string} usernameOrEmail - Nazwa użytkownika LUB email
-     * @param {string} password
-     * @returns {Object} {success, message, user}
-     */
     login(usernameOrEmail, password) {
         if (!usernameOrEmail || !password) {
             return { success: false, message: '❌ Uzupełnij wszystkie pola!' };
         }
 
         const users = JSON.parse(localStorage.getItem(this.USERS_KEY)) || [];
-        // Szukaj po username LUB email
         const user = users.find(
             (u) =>
                 u.username === usernameOrEmail || u.email === usernameOrEmail,
@@ -209,7 +167,6 @@ class AuthService {
             return { success: false, message: '❌ Złe hasło!' };
         }
 
-        // Utwórz sesję
         const session = {
             id: user.id,
             username: user.username,
@@ -227,17 +184,11 @@ class AuthService {
         };
     }
 
-    /**
-     * Wyloguj
-     */
     logout() {
         localStorage.removeItem(this.SESSION_KEY);
         console.log('✅ Wylogowano');
     }
 
-    /**
-     * Ulubione miasta dla zalogowanego użytkownika
-     */
     getFavorites() {
         const session = this.getCurrentSession();
         console.log('📖 getFavorites - session:', session);
@@ -281,19 +232,10 @@ class AuthService {
         localStorage.setItem(this.FAVORITES_KEY, JSON.stringify(all));
     }
 
-    /**
-     * Pobierz pytania bezpieczeństwa
-     * @returns {Array}
-     */
     getSecurityQuestions() {
         return this.SECURITY_QUESTIONS;
     }
 
-    /**
-     * Pobierz pytanie dla użytkownika po emailu
-     * @param {string} email
-     * @returns {Object} {questionIndex, question} lub null
-     */
     getSecurityQuestionByEmail(email) {
         const users = JSON.parse(localStorage.getItem(this.USERS_KEY)) || [];
         const user = users.find((u) => u.email === email);
@@ -307,12 +249,6 @@ class AuthService {
         };
     }
 
-    /**
-     * Weryfikuj odpowiedź na pytanie bezpieczeństwa
-     * @param {string} email
-     * @param {string} answer
-     * @returns {Object} {success, message}
-     */
     verifySecurityAnswer(email, answer) {
         const users = JSON.parse(localStorage.getItem(this.USERS_KEY)) || [];
         const user = users.find((u) => u.email === email);
@@ -329,12 +265,6 @@ class AuthService {
         return { success: true, message: '✅ Poprawna odpowiedź!' };
     }
 
-    /**
-     * Resetuj hasło po weryfikacji pytania
-     * @param {string} email
-     * @param {string} newPassword
-     * @returns {Object}
-     */
     resetPasswordBySecurityQuestion(email, newPassword) {
         if (!email || !newPassword) {
             return { success: false, message: '❌ Brak emailu lub hasła!' };
@@ -365,10 +295,6 @@ class AuthService {
         };
     }
 
-    /**
-     * Pobierz obecną sesję
-     * @returns {Object|null}
-     */
     getCurrentSession() {
         const session = localStorage.getItem(this.SESSION_KEY);
         if (!session) return null;
@@ -381,27 +307,14 @@ class AuthService {
         }
     }
 
-    /**
-     * Sprawdź czy user zalogowany
-     * @returns {boolean}
-     */
     isAuthenticated() {
         return !!this.getCurrentSession();
     }
 
-    /**
-     * Generuj prosty token
-     * @returns {string}
-     */
     generateToken() {
         return Math.random().toString(36).substr(2) + Date.now().toString(36);
     }
 
-    /**
-     * Dodaj do historii wyszukań
-     * @param {string} city
-     * @param {Object} weatherData
-     */
     addToHistory(city, weatherData) {
         const session = this.getCurrentSession();
         if (!session) return;
@@ -418,19 +331,15 @@ class AuthService {
             timestamp: new Date().toISOString(),
         };
 
-        history.unshift(entry); // Dodaj na początek
+        history.unshift(entry);
         localStorage.setItem(
             this.HISTORY_KEY,
             JSON.stringify(history.slice(0, 100)),
-        ); // Max 100 pozycji
+        );
 
         console.log('✅ Dodano do historii:', city);
     }
 
-    /**
-     * Pobierz historię dla zalogowanego użytkownika
-     * @returns {Array}
-     */
     getHistory() {
         const session = this.getCurrentSession();
         if (!session) return [];
@@ -440,10 +349,6 @@ class AuthService {
         return history.filter((entry) => entry.userId === session.id);
     }
 
-    /**
-     * Usuń wpis z historii
-     * @param {string} entryId
-     */
     deleteHistoryEntry(entryId) {
         const history =
             JSON.parse(localStorage.getItem(this.HISTORY_KEY)) || [];
@@ -452,9 +357,6 @@ class AuthService {
         console.log('✅ Usunięto z historii');
     }
 
-    /**
-     * Wyczyść całą historię
-     */
     clearHistory() {
         const session = this.getCurrentSession();
         if (!session) return;
@@ -466,17 +368,11 @@ class AuthService {
         console.log('✅ Historia wyczyszczona');
     }
 
-    /**
-     * Zaproś reset hasła
-     * @param {string} email
-     * @returns {Object}
-     */
     requestPasswordReset(email) {
         const users = JSON.parse(localStorage.getItem(this.USERS_KEY)) || [];
         const user = users.find((u) => u.email === email);
 
         if (!user) {
-            // Nie zdradź czy email istnieje
             return {
                 success: true,
                 message:
@@ -484,7 +380,6 @@ class AuthService {
             };
         }
 
-        // Wygeneruj token resetu
         const resetToken =
             Math.random().toString(36).substr(2) + Date.now().toString(36);
         const resetTokens =
@@ -493,7 +388,7 @@ class AuthService {
         resetTokens[resetToken] = {
             userId: user.id,
             email: user.email,
-            expiresAt: new Date(Date.now() + 3600000).toISOString(), // 1 godzina
+            expiresAt: new Date(Date.now() + 3600000).toISOString(),
             createdAt: new Date().toISOString(),
         };
         localStorage.setItem(
@@ -501,7 +396,6 @@ class AuthService {
             JSON.stringify(resetTokens),
         );
 
-        // Symulacja wysłania emaila - w real app byś użył serwera
         console.log(
             `📧 Link do resetu: ${window.location.origin}?resetToken=${resetToken}`,
         );
@@ -513,12 +407,6 @@ class AuthService {
         };
     }
 
-    /**
-     * Zresetuj hasło za pomocą tokena
-     * @param {string} resetToken
-     * @param {string} newPassword
-     * @returns {Object}
-     */
     resetPassword(resetToken, newPassword) {
         if (!resetToken || !newPassword) {
             return { success: false, message: '❌ Brak tokena lub hasła!' };
@@ -551,7 +439,6 @@ class AuthService {
             return { success: false, message: '❌ Token resetu wygasł!' };
         }
 
-        // Znajdź użytkownika i zmień hasło
         const users = JSON.parse(localStorage.getItem(this.USERS_KEY)) || [];
         const user = users.find((u) => u.id === tokenData.userId);
 
@@ -560,7 +447,6 @@ class AuthService {
             localStorage.setItem(this.USERS_KEY, JSON.stringify(users));
         }
 
-        // Usuń token
         delete resetTokens[resetToken];
         localStorage.setItem(
             'weather_reset_tokens',

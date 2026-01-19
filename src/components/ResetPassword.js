@@ -1,8 +1,3 @@
-/**
- * Reset Password Component
- * Obsługuje reset hasła za pomocą tokena
- */
-
 import { authService } from '../api/authService.js';
 
 const template = document.createElement('template');
@@ -159,7 +154,6 @@ class ResetPasswordComponent extends HTMLElement {
         this.form = this.shadowRoot.getElementById('resetForm');
         this.backLink = this.shadowRoot.getElementById('backLink');
 
-        // Pobierz token z URL
         const params = new URLSearchParams(window.location.search);
         this.resetToken = params.get('resetToken');
 
