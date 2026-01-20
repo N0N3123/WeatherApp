@@ -314,25 +314,61 @@ class DetailedForecastComponent extends HTMLElement {
                 }
 
                 @media (max-width: 600px) {
+                    .modal-overlay.active {
+                        padding: 0;
+                        align-items: flex-end;
+                    }
+
                     .modal-content {
                         border-radius: 16px 16px 0 0;
+                        max-height: 85vh;
+                        width: 100%;
+                        max-width: 100%;
                     }
 
                     .modal-header {
-                        padding: 1.5rem 1.5rem 1rem 1.5rem;
+                        padding: 1.25rem;
+                    }
+
+                    .day-name {
+                        font-size: 1.25rem;
                     }
 
                     .modal-body {
-                        padding: 1.5rem;
+                        padding: 1rem;
                     }
 
                     .main-weather {
                         flex-direction: column;
                         gap: 1rem;
+                        padding: 1rem;
+                        margin-bottom: 1.5rem;
+                    }
+
+                    .weather-icon-large {
+                        font-size: 3rem;
+                    }
+
+                    .temperature-range {
+                        gap: 1.5rem;
+                        justify-content: center;
                     }
 
                     .details-grid {
                         grid-template-columns: repeat(2, 1fr);
+                        gap: 0.75rem;
+                    }
+
+                    .detail-card {
+                        padding: 0.75rem;
+                    }
+
+                    .detail-icon {
+                        font-size: 1.25rem;
+                    }
+
+                    .detail-value {
+                        font-size: 1rem;
                     }
                 }
             </style>
