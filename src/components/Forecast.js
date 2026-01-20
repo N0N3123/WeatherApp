@@ -45,11 +45,12 @@ class ForecastComponent extends HTMLElement {
             <style>
                 :host {
                     display: block;
+                    overflow: hidden;
                 }
 
                 .forecast-container {
                     position: relative;
-                    overflow-y: hidden;
+                    overflow: hidden;
                     max-width: 100%;
                     -webkit-overflow-scrolling: touch;
                     animation: fadeIn 0.3s ease-out;
@@ -336,6 +337,35 @@ class ForecastComponent extends HTMLElement {
                 }
 
                 @media (max-width: 600px) {
+                    .forecast-grid {
+                        grid-template-columns: repeat(2, 1fr);
+                        gap: 0.75rem;
+                        padding: 1rem 0.25rem 2rem 0.25rem;
+                        min-width: 0;
+                    }
+
+                    .forecast-item {
+                        padding: 0.75rem 0.5rem;
+                    }
+
+                    .nav-buttons {
+                        grid-template-columns: 1fr;
+                        gap: 0.5rem;
+                    }
+
+                    .detail-header {
+                        padding: 1rem;
+                    }
+
+                    .detail-body {
+                        padding: 1rem;
+                    }
+
+                    .detail-grid {
+                        grid-template-columns: repeat(2, 1fr);
+                        gap: 0.5rem;
+                    }
+
                     .detail-main {
                         flex-direction: column;
                         text-align: center;

@@ -7,7 +7,7 @@ export function formatWeatherDescription(description) {
 }
 
 export function formatWindSpeed(mps) {
-    return Math.round(mps * 3.6);
+    return `${Math.round(mps * 3.6)} km/h`;
 }
 
 export function formatTime(timestamp, format = 'datetime') {
