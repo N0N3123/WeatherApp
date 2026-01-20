@@ -129,6 +129,7 @@ class ChartComponent extends HTMLElement {
 
         let closestIndex = -1;
         let minDistance = Infinity;
+        const hitRadius = 50 * Math.max(scaleX, scaleY);
 
         this.chartData.labels.forEach((_, i) => {
             const pointX = this.padding.left + i * pointSpacing;
@@ -141,7 +142,7 @@ class ChartComponent extends HTMLElement {
             const distance = Math.sqrt(
                 Math.pow(canvasX - pointX, 2) + Math.pow(canvasY - pointY, 2),
             );
-            if (distance < minDistance && distance < 30) {
+            if (distance < minDistance && distance < hitRadius) {
                 minDistance = distance;
                 closestIndex = i;
             }
