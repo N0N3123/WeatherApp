@@ -22,13 +22,10 @@ class DetailedForecastComponent extends HTMLElement {
         stateManager.subscribe('forecast', (data) => {
             this.forecast = data;
         });
-
-        console.log('✅ DetailedForecastComponent mounted');
     }
 
     setupEventListeners() {
         document.addEventListener('forecast-selected', (e) => {
-            console.log('📅 Event forecast-selected otrzymany:', e.detail);
             this.handleDaySelected(e.detail.timestamp);
         });
     }
@@ -423,7 +420,6 @@ class DetailedForecastComponent extends HTMLElement {
         prevBtn.addEventListener('click', () => this.showPreviousDay());
         nextBtn.addEventListener('click', () => this.showNextDay());
 
-        // Podgląd dni - kliknięcie
         this.shadowRoot.addEventListener('click', (e) => {
             if (e.target.closest('.preview-item')) {
                 const timestamp =
@@ -441,7 +437,6 @@ class DetailedForecastComponent extends HTMLElement {
 
     handleDaySelected(timestamp) {
         if (!this.forecast || !this.forecast.list) {
-            console.warn('Brak danych prognozy');
             return;
         }
 
@@ -459,7 +454,6 @@ class DetailedForecastComponent extends HTMLElement {
         const day = this.selectedForecast;
         const date = new Date(day.dt * 1000);
 
-        // Nagłówek
         this.shadowRoot.getElementById('dayName').textContent =
             date.toLocaleDateString('pl-PL', { weekday: 'long' });
         this.shadowRoot.getElementById('dayDate').textContent =
@@ -469,7 +463,6 @@ class DetailedForecastComponent extends HTMLElement {
                 year: 'numeric',
             });
 
-        // Główne informacje
         const emoji = getWeatherEmoji(day.weather[0].main);
         this.shadowRoot.getElementById('mainIcon').textContent = emoji;
         this.shadowRoot.getElementById('weatherDesc').textContent =
@@ -481,7 +474,6 @@ class DetailedForecastComponent extends HTMLElement {
         this.shadowRoot.getElementById('tempMean').textContent =
             formatTemperature(day.main.temp);
 
-        // Szczegóły
         this.shadowRoot.getElementById('precipitation').textContent =
             formatRain(day.rain['1h']);
         this.shadowRoot.getElementById('windSpeed').textContent =
@@ -489,13 +481,11 @@ class DetailedForecastComponent extends HTMLElement {
         this.shadowRoot.getElementById('weatherStatus').textContent =
             day.weather[0].description;
 
-        // Przycisk nawigacji
         const currentIndex = this.forecast.list.indexOf(day);
         this.shadowRoot.getElementById('prevBtn').disabled = currentIndex === 0;
         this.shadowRoot.getElementById('nextBtn').disabled =
             currentIndex === this.forecast.list.length - 1;
 
-        // Podgląd kolejnych dni
         this.updateForecastPreview();
     }
 

@@ -12,7 +12,6 @@ class WeatherService {
     async geocodeCity(city) {
         try {
             if (this.cityCoordinates.has(city)) {
-                console.log('📍 Współrzędne z cache:', city);
                 return this.cityCoordinates.get(city);
             }
 
@@ -22,7 +21,6 @@ class WeatherService {
             url.searchParams.append('language', CONFIG.API.LANG);
             url.searchParams.append('format', 'json');
 
-            console.log('🌍 Geocoding:', city);
             const response = await this.fetchWithTimeout(url.toString());
             const data = await response.json();
 
@@ -43,7 +41,6 @@ class WeatherService {
 
             return coordinates;
         } catch (error) {
-            console.error('❌ Błąd geocodingu:', error);
             throw new Error(`Błąd konwersji miasta: ${error.message}`);
         }
     }
@@ -53,11 +50,8 @@ class WeatherService {
             const cacheKey = `current_${city}`;
 
             if (this.isCached(cacheKey)) {
-                console.log('📦 Bieżąca pogoda z cache:', city);
                 return this.cache.get(cacheKey).data;
             }
-
-            // Pobierz współrzędne
             const coords = await this.geocodeCity(city);
 
             const url = new URL(CONFIG.API.FORECAST_URL);
@@ -74,7 +68,6 @@ class WeatherService {
             url.searchParams.append('timezone', coords.timezone);
             url.searchParams.append('temperature_unit', 'celsius');
 
-            console.log('🌐 Pobieranie bieżącej pogody:', city);
             const response = await this.fetchWithTimeout(url.toString());
             const data = await response.json();
 
@@ -88,7 +81,6 @@ class WeatherService {
 
             return transformedData;
         } catch (error) {
-            console.error('❌ Błąd getCurrentWeather:', error);
             throw new Error(`Błąd pobierania pogody: ${error.message}`);
         }
     }
@@ -98,7 +90,6 @@ class WeatherService {
             const cacheKey = `forecast_${city}`;
 
             if (this.isCached(cacheKey)) {
-                console.log('📦 Prognoza z cache:', city);
                 return this.cache.get(cacheKey).data;
             }
 
@@ -114,7 +105,6 @@ class WeatherService {
             url.searchParams.append('timezone', coords.timezone);
             url.searchParams.append('temperature_unit', 'celsius');
 
-            console.log('🌐 Pobieranie prognozy:', city);
             const response = await this.fetchWithTimeout(url.toString());
             const data = await response.json();
 
@@ -124,12 +114,10 @@ class WeatherService {
 
             const transformedData = this.transformForecast(data, coords);
 
-            // Zapisz w cache
             this.setCache(cacheKey, transformedData);
 
             return transformedData;
         } catch (error) {
-            console.error('❌ Błąd getForecast:', error);
             throw new Error(`Błąd pobierania prognozy: ${error.message}`);
         }
     }
@@ -139,7 +127,6 @@ class WeatherService {
             const cacheKey = `historical_${city}_${startDate}_${endDate}`;
 
             if (this.isCached(cacheKey)) {
-                console.log('📦 Dane historyczne z cache:', city);
                 return this.cache.get(cacheKey).data;
             }
 
@@ -157,40 +144,22 @@ class WeatherService {
             url.searchParams.append('timezone', coords.timezone);
             url.searchParams.append('temperature_unit', 'celsius');
 
-            console.log(
-                '🌐 Pobieranie danych historycznych (80 lat):',
-                city,
-                startDate,
-                'do',
-                endDate,
-            );
             const response = await this.fetchWithTimeout(url.toString());
             const data = await response.json();
 
             if (!response.ok) {
-                console.error('❌ API Response Error:', data);
                 throw new Error(`API error: ${response.status}`);
             }
 
             if (!data.daily) {
-                console.error('❌ Brak daily data w odpowiedzi:', data);
                 throw new Error('Brak danych daily w odpowiedzi API');
             }
 
-            console.log(
-                '📊 API zwrócił dane, rozmiar:',
-                data.daily.time?.length || 0,
-                'dni',
-            );
-
             const transformedData = this.transformHistoricalData(data, coords);
-
-            // Zapisz w cache
             this.setCache(cacheKey, transformedData);
 
             return transformedData;
         } catch (error) {
-            console.error('❌ Błąd getHistoricalData:', error.message);
             throw new Error(
                 `Błąd pobierania danych historycznych: ${error.message}`,
             );
@@ -285,7 +254,6 @@ class WeatherService {
         const daily = data.daily;
 
         if (!daily || !daily.time || daily.time.length === 0) {
-            console.error('❌ Brak danych daily w odpowiedzi API');
             throw new Error('Brak danych w odpowiedzi API');
         }
 
@@ -295,15 +263,6 @@ class WeatherService {
                 return (max + min) / 2;
             },
         );
-
-        console.log('✅ Dane historyczne przetworzone:', {
-            days: daily.time.length,
-            tempRange: `${Math.min(...(daily.temperature_2m_min || [])).toFixed(
-                1,
-            )}°C - ${Math.max(...(daily.temperature_2m_max || [])).toFixed(
-                1,
-            )}°C`,
-        });
 
         return {
             timestamps: daily.time,
@@ -400,12 +359,6 @@ class WeatherService {
             data,
             timestamp: Date.now(),
         });
-    }
-
-    clearCache() {
-        this.cache.clear();
-        this.cityCoordinates.clear();
-        console.log('🗑️ Cache wyczyszczony');
     }
 
     getCacheStats() {

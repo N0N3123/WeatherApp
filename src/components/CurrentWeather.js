@@ -59,7 +59,7 @@ class CurrentWeatherComponent extends HTMLElement {
                     min-height: 300px;
                     display: flex;
                     flex-direction: column;
-                    /* FIX: Zapobieganie wylewaniu się treści */
+
                     overflow: hidden; 
                     position: relative;
                 }
@@ -71,13 +71,13 @@ class CurrentWeatherComponent extends HTMLElement {
                 }
                 .city-info {
                     flex: 1;
-                    min-width: 0; /* Pozwala tekstowi się kurczyć */
+                    min-width: 0;
                 }
                 .city-name {
                     font-size: 2rem; 
                     font-weight: 700; 
                     margin: 0 0 0.5rem 0;
-                    word-wrap: break-word; /* Łamanie długich nazw */
+                    word-wrap: break-word;
                     line-height: 1.2;
                 }
                 .date-label {
@@ -120,12 +120,11 @@ class CurrentWeatherComponent extends HTMLElement {
                 
                 .loading { text-align: center; padding: 2rem; opacity: 0.7; }
 
-                /* --- FIX DLA MOBILE S / M --- */
                 @media (max-width: 480px) {
                     .card { padding: 1.5rem; }
                     .city-name { font-size: 1.5rem; }
                     .main-info { gap: 1rem; margin: 1.5rem 0; }
-                    .temperature { font-size: 3rem; } /* Mniejsza czcionka temperatury */
+                    .temperature { font-size: 3rem; }
                     .weather-icon { font-size: 3.5rem; }
                     .description { font-size: 1.1rem; }
                     .details-grid { grid-template-columns: 1fr 1fr; gap: 0.5rem; }

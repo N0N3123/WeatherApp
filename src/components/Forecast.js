@@ -12,7 +12,7 @@ class ForecastComponent extends HTMLElement {
         this.attachShadow({ mode: 'open' });
         this.forecastData = null;
         this.selectedForecast = null;
-        this.viewMode = 'list'; // 'list' lub 'detail'
+        this.viewMode = 'list';
         this.unsubscribe = null;
     }
 
@@ -23,8 +23,6 @@ class ForecastComponent extends HTMLElement {
             this.forecastData = data;
             this.updateView();
         });
-
-        console.log('✅ ForecastComponent mounted');
     }
 
     disconnectedCallback() {
@@ -396,7 +394,6 @@ class ForecastComponent extends HTMLElement {
             .map((item) => this.createForecastItem(item))
             .join('');
 
-        // Event listenery
         grid.querySelectorAll('.forecast-item').forEach((item) => {
             item.addEventListener('click', () => {
                 const timestamp = parseInt(item.dataset.timestamp, 10);
@@ -404,7 +401,6 @@ class ForecastComponent extends HTMLElement {
             });
         });
 
-        // Dopasuj wysokość kontenera do widoku listy
         this.adjustContainerHeight();
     }
 
@@ -511,7 +507,6 @@ class ForecastComponent extends HTMLElement {
             </div>
         `;
 
-        // Event listenery
         detailView.querySelector('#backBtn').addEventListener('click', () => {
             this.backToList();
         });
@@ -524,7 +519,6 @@ class ForecastComponent extends HTMLElement {
             this.showNextDay();
         });
 
-        // Dopasuj wysokość kontenera do widoku szczegółów
         this.adjustContainerHeight();
     }
 
@@ -587,7 +581,6 @@ class ForecastComponent extends HTMLElement {
         const detailView = this.shadowRoot.querySelector('#detailView');
         const activeView = this.viewMode === 'detail' ? detailView : listView;
         if (!container || !activeView) return;
-        // Upewnij się, że styl został przeliczon y przed pomiarem
         requestAnimationFrame(() => {
             const height = activeView.scrollHeight;
             if (height > 0) {

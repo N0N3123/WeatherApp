@@ -182,7 +182,6 @@ template.innerHTML = `
                 <input type="text" id="loginUsername" placeholder="Nazwa użytkownika lub email" required>
                 <input type="password" id="loginPassword" placeholder="Hasło" required>
                 <button type="submit">Zaloguj się 🚀</button>
-                <div class="login-hint">Demo: user "test" / hasło "test123"</div>
                 <div class="forgot-password">
                     <a id="forgotLink">Zapomniałeś hasła?</a>
                 </div>
@@ -257,8 +256,6 @@ class LoginComponent extends HTMLElement {
                 this.hideModal();
             });
         }
-
-        console.log('✅ LoginComponent mounted');
     }
 
     loadSecurityQuestions() {
@@ -272,7 +269,6 @@ class LoginComponent extends HTMLElement {
     }
 
     switchTab(tabName) {
-        // Update buttons
         this.tabBtns.forEach((btn) => {
             btn.classList.toggle('active', btn.dataset.tab === tabName);
         });

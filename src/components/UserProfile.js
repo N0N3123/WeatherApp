@@ -8,7 +8,7 @@ template.innerHTML = `
             display: block;
         }
         .profile-container {
-            background: #f0f4ff;
+            background: var(--up-bg, #f0f4ff);
             border-radius: 8px;
             padding: 1.25rem 1.5rem;
             margin: 1rem 0;
@@ -23,7 +23,7 @@ template.innerHTML = `
         .profile-title {
             font-size: 1.1rem;
             font-weight: 600;
-            color: #333;
+            color: var(--up-title, #333);
             margin: 0;
             display: flex;
             align-items: center;
@@ -38,7 +38,7 @@ template.innerHTML = `
             display: flex;
             justify-content: space-between;
             padding: 0.8rem;
-            background: white;
+            background: var(--up-row-bg, white);
             border-radius: 6px;
             font-size: 0.95rem;
         }
@@ -47,7 +47,7 @@ template.innerHTML = `
             color: #667eea;
         }
         .info-value {
-            color: #333;
+            color: var(--up-text, #333);
             text-align: right;
         }
         .hidden {
@@ -127,7 +127,7 @@ class UserProfile extends HTMLElement {
         const favoritesCount = this.shadowRoot.getElementById('favoritesCount');
         const topCity = this.shadowRoot.getElementById('topCity');
 
-        username.textContent = user.name || 'Gość';
+        username.textContent = user.username || 'Gość';
         email.textContent = user.email || '-';
 
         const lastVisitTime = localStorage.getItem('weather_last_visit');

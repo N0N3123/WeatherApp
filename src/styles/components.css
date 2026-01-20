@@ -66,12 +66,3 @@ weather-chart {
     height: 100%;
   }
 }
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --dark: #f0f0f0;
-    --light: #1a1a1a;
-    --white: #1e1e1e;
-    --gray-light: #2a2a2a;
-  }
-}

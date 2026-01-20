@@ -45,13 +45,9 @@ class AuthService {
             try {
                 const parsed = JSON.parse(current);
                 if (Array.isArray(parsed)) {
-                    console.warn(
-                        '⚠️ Stara struktura ulubionych (tablica), resetuję do obiektu',
-                    );
                     localStorage.setItem(favKey, JSON.stringify({}));
                 }
             } catch (e) {
-                console.error('❌ Błąd parsowania ulubionych, resetuję');
                 localStorage.setItem(favKey, JSON.stringify({}));
             }
         }
@@ -134,7 +130,6 @@ class AuthService {
         users.push(newUser);
         localStorage.setItem(this.USERS_KEY, JSON.stringify(users));
 
-        console.log('✅ Użytkownik zarejestrowany:', username);
         return {
             success: true,
             message: '✅ Rejestracja udana!',
@@ -170,45 +165,37 @@ class AuthService {
         const session = {
             id: user.id,
             username: user.username,
+            email: user.email,
             token: this.generateToken(),
             loginAt: new Date().toISOString(),
         };
 
         localStorage.setItem(this.SESSION_KEY, JSON.stringify(session));
 
-        console.log('✅ Zalogowano:', user.username);
         return {
             success: true,
             message: '✅ Zalogowano!',
-            user: { id: user.id, username: user.username },
+            user: { id: user.id, username: user.username, email: user.email },
         };
     }
 
     logout() {
         localStorage.removeItem(this.SESSION_KEY);
-        console.log('✅ Wylogowano');
     }
 
     getFavorites() {
         const session = this.getCurrentSession();
-        console.log('📖 getFavorites - session:', session);
         if (!session) {
-            console.log('⚠️ Brak sesji w getFavorites!');
             return [];
         }
         const all = JSON.parse(localStorage.getItem(this.FAVORITES_KEY)) || {};
-        console.log('📦 Cała tablica ulubionych z storage:', all);
-        console.log('🔍 Szukam klucza:', session.id);
         const result = all[session.id] || [];
-        console.log('✅ Zwracam:', result);
         return result;
     }
 
     addFavorite(city) {
         const session = this.getCurrentSession();
-        console.log('💾 addFavorite:', city, 'session:', session);
         if (!session) {
-            console.warn('⚠️ Brak sesji!');
             return;
         }
         const all = JSON.parse(localStorage.getItem(this.FAVORITES_KEY)) || {};
@@ -217,9 +204,6 @@ class AuthService {
             list.push(city);
             all[session.id] = list;
             localStorage.setItem(this.FAVORITES_KEY, JSON.stringify(all));
-            console.log('✅ Dodano ulubione:', city, 'lista:', list);
-        } else {
-            console.log('ℹ️ Już w ulubionych:', city);
         }
     }
 
@@ -287,7 +271,6 @@ class AuthService {
         user.passwordHash = this.hashPassword(newPassword);
         localStorage.setItem(this.USERS_KEY, JSON.stringify(users));
 
-        console.log('✅ Hasło zresetowane dla:', email);
         return {
             success: true,
             message:
@@ -299,9 +282,17 @@ class AuthService {
         const session = localStorage.getItem(this.SESSION_KEY);
         if (!session) return null;
         try {
-            return JSON.parse(session);
+            const parsed = JSON.parse(session);
+            if (parsed && !parsed.email) {
+                const users = JSON.parse(localStorage.getItem(this.USERS_KEY)) || [];
+                const user = users.find(u => u.id === parsed.id);
+                if (user) {
+                    parsed.email = user.email;
+                    localStorage.setItem(this.SESSION_KEY, JSON.stringify(parsed));
+                }
+            }
+            return parsed;
         } catch (e) {
-            console.warn('⚠️ Czyszczę stary format session', e);
             localStorage.removeItem(this.SESSION_KEY);
             return null;
         }
@@ -336,8 +327,6 @@ class AuthService {
             this.HISTORY_KEY,
             JSON.stringify(history.slice(0, 100)),
         );
-
-        console.log('✅ Dodano do historii:', city);
     }
 
     getHistory() {
@@ -354,7 +343,6 @@ class AuthService {
             JSON.parse(localStorage.getItem(this.HISTORY_KEY)) || [];
         const filtered = history.filter((entry) => entry.id !== entryId);
         localStorage.setItem(this.HISTORY_KEY, JSON.stringify(filtered));
-        console.log('✅ Usunięto z historii');
     }
 
     clearHistory() {
@@ -365,7 +353,6 @@ class AuthService {
             JSON.parse(localStorage.getItem(this.HISTORY_KEY)) || [];
         const filtered = history.filter((entry) => entry.userId !== session.id);
         localStorage.setItem(this.HISTORY_KEY, JSON.stringify(filtered));
-        console.log('✅ Historia wyczyszczona');
     }
 }
 

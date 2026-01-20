@@ -3,7 +3,6 @@ import { weatherService } from './api/weatherService.js';
 import { authService } from './api/authService.js';
 import { stateManager } from './state/stateManager.js';
 
-// Import komponentów
 import './components/Login.js';
 import './components/SearchHistory.js';
 import './components/CurrentWeather.js';
@@ -38,6 +37,7 @@ class WeatherApp {
             historicalChart: document.getElementById('historicalChart'),
             searchHistory: document.getElementById('searchHistory'),
             authBtn: document.getElementById('authBtn'),
+            themeToggle: document.getElementById('themeToggle'),
         };
 
         if (this.elements.authBtn) {
@@ -46,7 +46,42 @@ class WeatherApp {
                 : 'Zaloguj się';
         }
 
-        console.log('✅ Elements setup');
+        this.initTheme();
+    }
+
+    initTheme() {
+        const savedTheme = localStorage.getItem('weather_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        this.updateThemeIcon(savedTheme);
+    }
+
+    toggleTheme() {
+        const currentTheme =
+            document.documentElement.getAttribute('data-theme') || 'light';
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('weather_theme', newTheme);
+        this.updateThemeIcon(newTheme);
+
+        const chartWidget = document.querySelector('weather-chart');
+        if (chartWidget && chartWidget.drawChart) {
+            chartWidget.drawChart();
+        }
+
+        const historicalChart = document.querySelector('historical-chart');
+        if (historicalChart && historicalChart.drawChart) {
+            historicalChart.drawChart();
+        }
+    }
+
+    updateThemeIcon(theme) {
+        if (this.elements.themeToggle) {
+            this.elements.themeToggle.textContent =
+                theme === 'dark' ? '☀️' : '🌙';
+            this.elements.themeToggle.title =
+                theme === 'dark' ? 'Tryb jasny' : 'Tryb ciemny';
+        }
     }
 
     setupStateListeners() {
@@ -60,9 +95,7 @@ class WeatherApp {
             }
         });
 
-        stateManager.subscribe('currentCity', (city) => {
-            console.log('🏙️ Zmienione miasto:', city);
-        });
+        stateManager.subscribe('currentCity', () => {});
 
         stateManager.subscribe('user', (user) => {
             const btn = this.elements.authBtn;
@@ -70,12 +103,15 @@ class WeatherApp {
                 btn.textContent = user ? 'Wyloguj się' : 'Zaloguj się';
             }
         });
-
-        console.log('✅ State listeners setup');
     }
 
     setupEventListeners() {
-        // 1. Wyszukiwanie z paska (Search Widget)
+        if (this.elements.themeToggle) {
+            this.elements.themeToggle.addEventListener('click', () => {
+                this.toggleTheme();
+            });
+        }
+
         this.elements.searchWidget.addEventListener('search', (e) => {
             const city = e.detail.city;
             this.fetchWeatherData(city);
@@ -85,35 +121,28 @@ class WeatherApp {
             this.showError(e.detail.message);
         });
 
-        // 2. Kliknięcie w Historię Wyszukiwania
         if (this.elements.searchHistory) {
             this.elements.searchHistory.addEventListener(
                 'history-select',
                 (e) => {
                     const city = e.detail.city;
-                    console.log('📜 Wybrano z historii:', city);
-
-                    // ZMIANA: Usunięto wpisywanie miasta do paska input
-                    // Bezpośrednio pobieramy dane
                     this.fetchWeatherData(city);
                 },
             );
         }
 
-        // 3. Obsługa ulubionych (jeśli zajdzie potrzeba globalnej obsługi)
         document.addEventListener('favorite-selected', (e) => {
             this.fetchWeatherData(e.detail.city);
         });
 
-        this.elements.currentWeather.addEventListener('weather-loaded', (e) => {
-            console.log('⛅ Pogoda załadowana:', e.detail.weather);
-        });
+        this.elements.currentWeather.addEventListener(
+            'weather-loaded',
+            () => {},
+        );
 
         this.elements.forecastWidget.addEventListener(
             'forecast-selected',
-            (e) => {
-                console.log('📅 Wybrany timestamp:', e.detail.timestamp);
-            },
+            () => {},
         );
 
         const historicalChart = document.querySelector('historical-chart');
@@ -161,28 +190,22 @@ class WeatherApp {
                 }
             });
         }
-
-        console.log('✅ Event listeners setup');
     }
 
     async init() {
-        console.log('🚀 WeatherApp inicjalizacja - Open-Meteo API');
-
         const session = authService.getCurrentSession();
         if (session) {
             stateManager.loginUser({
                 id: session.id,
                 username: session.username,
+                email: session.email,
             });
         }
 
         const savedCity = stateManager.get('currentCity');
         const cityToLoad = savedCity || CONFIG.APP.DEFAULT_CITY;
 
-        console.log(`🌍 Wczytuję miasto startowe: ${cityToLoad}`);
         await this.fetchWeatherData(cityToLoad);
-
-        console.log('✅ WeatherApp gotowa!');
     }
 
     async fetchWeatherData(city) {
@@ -203,10 +226,7 @@ class WeatherApp {
             });
 
             this.updateUIWithWeatherData(currentData);
-
-            console.log('✅ Dane załadowane dla:', city);
         } catch (error) {
-            console.error('❌ Błąd pobierania danych:', error);
             stateManager.setMultiple({
                 error: error.message,
                 isLoading: false,
@@ -215,9 +235,6 @@ class WeatherApp {
     }
 
     updateUIWithWeatherData(weatherData) {
-        const time = new Date().toLocaleTimeString('pl-PL');
-        console.log(`📍 Dane dla ${weatherData.name} zaktualizowane o ${time}`);
-
         if (authService.isAuthenticated()) {
             authService.addToHistory(weatherData.name, weatherData);
 
@@ -240,10 +257,7 @@ class WeatherApp {
             );
             stateManager.setHistoricalData(historicalData);
             stateManager.setLoading(false);
-
-            console.log('✅ Dane historyczne załadowane');
         } catch (error) {
-            console.error('❌ Błąd pobierania danych historycznych:', error);
             stateManager.setMultiple({
                 error: error.message,
                 isLoading: false,
@@ -269,13 +283,7 @@ class WeatherApp {
         }, 5000);
     }
 
-    debug() {
-        console.group('🔍 WeatherApp Debug');
-        console.log('Config:', CONFIG);
-        console.log('State:', stateManager.get());
-        console.log('Elements:', this.elements);
-        console.groupEnd();
-    }
+    debug() {}
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -291,13 +299,10 @@ document.addEventListener('DOMContentLoaded', () => {
             window.app.fetchHistoricalData(city, startDate, endDate),
         getCacheStats: () => weatherService.getCacheStats(),
     };
-
-    console.log('💡 Wpisz DEBUG w konsoli aby debugować aplikację');
 });
 
 if (import.meta.hot) {
-    import.meta.hot.accept((module) => {
-        console.log('🔄 Reloading...');
+    import.meta.hot.accept(() => {
         location.reload();
     });
 }

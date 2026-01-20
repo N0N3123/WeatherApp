@@ -43,9 +43,7 @@ class ChartComponent extends HTMLElement {
             );
 
             this.updateChart(data);
-        } catch (error) {
-            console.error('Błąd pobierania wykresu historii:', error);
-        }
+        } catch (error) {}
     }
 
     render() {
@@ -55,7 +53,7 @@ class ChartComponent extends HTMLElement {
                 .chart-container {
                     position: relative; 
                     height: 300px;
-                    background: white; 
+                    background: var(--chart-bg, white); 
                     border-radius: 8px; 
                     padding: 1rem;
                     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -225,13 +223,17 @@ class ChartComponent extends HTMLElement {
         const width = container.clientWidth;
         const height = 280;
 
+        const isDark =
+            document.documentElement.getAttribute('data-theme') === 'dark';
+        const gridColor = isDark ? '#3a4a6b' : '#eee';
+        const textColor = isDark ? '#aaa' : '#666';
+
         ctx.clearRect(0, 0, width, height);
 
         const chartWidth = width - this.padding.left - this.padding.right;
         const chartHeight = height - this.padding.top - this.padding.bottom;
 
-        // Rysuj siatkę
-        ctx.strokeStyle = '#eee';
+        ctx.strokeStyle = gridColor;
         ctx.lineWidth = 1;
 
         const ySteps = 5;
@@ -243,8 +245,7 @@ class ChartComponent extends HTMLElement {
             ctx.stroke();
         }
 
-        // Etykiety osi Y
-        ctx.fillStyle = '#666';
+        ctx.fillStyle = textColor;
         ctx.font = '11px sans-serif';
         ctx.textAlign = 'right';
 
@@ -256,8 +257,6 @@ class ChartComponent extends HTMLElement {
             const y = this.padding.top + (chartHeight / ySteps) * i;
             ctx.fillText(value.toFixed(1) + '°', this.padding.left - 8, y + 4);
         }
-
-        // Etykiety osi X
         ctx.textAlign = 'center';
         const pointSpacing = chartWidth / (this.chartData.labels.length - 1);
 
@@ -266,7 +265,6 @@ class ChartComponent extends HTMLElement {
             ctx.fillText(label, x, height - this.padding.bottom + 20);
         });
 
-        // Rysuj wypełnienie pod linią
         ctx.beginPath();
         ctx.moveTo(this.padding.left, this.padding.top + chartHeight);
 
@@ -314,7 +312,6 @@ class ChartComponent extends HTMLElement {
         ctx.fillStyle = gradient;
         ctx.fill();
 
-        // Rysuj linię
         ctx.beginPath();
         ctx.strokeStyle = this.chartData.color;
         ctx.lineWidth = 2.5;
@@ -348,7 +345,6 @@ class ChartComponent extends HTMLElement {
         });
         ctx.stroke();
 
-        // Rysuj punkty
         this.chartData.values.forEach((value, i) => {
             const x = this.padding.left + i * pointSpacing;
             const normalizedValue =

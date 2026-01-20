@@ -1,5 +1,9 @@
 import { stateManager } from '../state/stateManager.js';
-import { isValidCity } from '../utils/validators.js';
+
+function isValidCity(city) {
+    if (!city || typeof city !== 'string') return false;
+    return city.trim().length >= 2 && city.trim().length <= 50;
+}
 
 class SearchComponent extends HTMLElement {
     constructor() {
@@ -84,16 +88,21 @@ class SearchComponent extends HTMLElement {
                 input {
                     flex: 1;
                     padding: 0.8rem 1rem;
-                    border: 2px solid #e0e0e0;
+                    border: 2px solid var(--search-border, #e0e0e0);
                     border-radius: 8px;
                     font-size: 1rem;
                     outline: none;
                     transition: border-color 0.3s;
                     width: 100%;
+                    background: var(--search-input-bg, white);
+                    color: var(--search-text, #333);
                 }
                 input:focus {
                     border-color: #667eea;
                     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+                }
+                input::placeholder {
+                    color: var(--search-placeholder, #999);
                 }
                 button {
                     padding: 0.8rem 1.5rem;
@@ -112,8 +121,8 @@ class SearchComponent extends HTMLElement {
                     top: 100%;
                     left: 0;
                     right: 0;
-                    background: white;
-                    border: 1px solid #e0e0e0;
+                    background: var(--search-suggestions-bg, white);
+                    border: 1px solid var(--search-border, #e0e0e0);
                     border-top: none;
                     border-radius: 0 0 8px 8px;
                     max-height: 200px;
@@ -128,13 +137,13 @@ class SearchComponent extends HTMLElement {
                 .suggestion-item {
                     padding: 0.8rem 1rem;
                     cursor: pointer;
-                    border-bottom: 1px solid #f0f0f0;
+                    border-bottom: 1px solid var(--search-item-border, #f0f0f0);
                     transition: background 0.2s;
-                    color: #333;
+                    color: var(--search-text, #333);
                     text-align: left;
                 }
                 .suggestion-item:last-child { border-bottom: none; }
-                .suggestion-item:hover { background: #f5f7fa; color: #667eea; }
+                .suggestion-item:hover { background: var(--search-hover, #f5f7fa); color: #667eea; }
             </style>
 
             <div class="search-container">

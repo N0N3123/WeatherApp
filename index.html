@@ -19,7 +19,12 @@
             <h1>🌤️ Weather App</h1>
             <p class="subtitle">Sprawdź pogodę dla swojego miasta</p>
           </div>
-          <button id="authBtn" class="auth-btn">Zaloguj się</button>
+          <div class="header-buttons">
+            <button id="themeToggle" class="theme-btn" title="Zmień motyw">
+              🌙
+            </button>
+            <button id="authBtn" class="auth-btn">Zaloguj się</button>
+          </div>
         </div>
       </div>
     </header>
@@ -61,7 +66,7 @@
         </section>
 
         <section class="section">
-          <h2>📊 Dane historyczne (Ponad 80 lat wstecz!)</h2>
+          <h2>📊 Dane historyczne</h2>
           <historical-chart id="historicalChart"></historical-chart>
         </section>
 

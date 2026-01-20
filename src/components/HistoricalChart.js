@@ -32,7 +32,6 @@ class HistoricalChartComponent extends HTMLElement {
         });
 
         this.updateControlsVisibility();
-        console.log('✅ HistoricalChartComponent mounted');
     }
 
     disconnectedCallback() {
@@ -49,7 +48,7 @@ class HistoricalChartComponent extends HTMLElement {
                 }
 
                 .historical-container {
-                    background: white;
+                    background: var(--hc-bg, white);
                     border-radius: 8px;
                     padding: 1rem;
                     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -73,7 +72,7 @@ class HistoricalChartComponent extends HTMLElement {
 
                 .control-group > label {
                     font-weight: 600;
-                    color: #333;
+                    color: var(--hc-label, #333);
                     cursor: default;
                     font-size: 0.9rem;
                 }
@@ -81,9 +80,11 @@ class HistoricalChartComponent extends HTMLElement {
                 input[type="date"],
                 select {
                     padding: 0.5rem;
-                    border: 1px solid #ddd;
+                    border: 1px solid var(--hc-border, #ddd);
                     border-radius: 4px;
                     font-size: 0.9rem;
+                    background: var(--hc-input-bg, white);
+                    color: var(--hc-text, #333);
                 }
 
                 .metrics-group {
@@ -94,7 +95,7 @@ class HistoricalChartComponent extends HTMLElement {
                 }
                 .metrics-group > label {
                     font-weight: 600;
-                    color: #333;
+                    color: var(--hc-label, #333);
                     font-size: 0.9rem;
                     cursor: default;
                     margin-right: 0.5rem;
@@ -112,7 +113,7 @@ class HistoricalChartComponent extends HTMLElement {
                 }
                 
                 .metric-checkbox:hover {
-                    background-color: #f0f0f0;
+                    background-color: var(--hc-hover, #f0f0f0);
                 }
 
                 .metric-checkbox input[type="checkbox"] {
@@ -125,7 +126,7 @@ class HistoricalChartComponent extends HTMLElement {
                 .metric-checkbox span {
                     cursor: pointer;
                     font-weight: 500;
-                    color: #333;
+                    color: var(--hc-text, #333);
                     font-size: 0.9rem;
                 }
 
@@ -145,7 +146,6 @@ class HistoricalChartComponent extends HTMLElement {
                     background: #5568d3;
                 }
 
-                /* --- FIX DLA MOBILE S/M --- */
                 @media (max-width: 500px) {
                     .controls { flex-direction: column; align-items: stretch; gap: 0.8rem; }
                     .control-group { flex-direction: column; align-items: flex-start; width: 100%; }
@@ -161,14 +161,14 @@ class HistoricalChartComponent extends HTMLElement {
                     align-items: center;
                     margin: 1rem 0;
                     padding: 1rem;
-                    background: #f9f9f9;
+                    background: var(--hc-zoom-bg, #f9f9f9);
                     border-radius: 6px;
                     flex-wrap: wrap;
                 }
 
                 .zoom-controls button {
                     padding: 0.5rem 1rem;
-                    font-size: 1rem; /* Większe ikony */
+                    font-size: 1rem;
                     background: #667eea;
                     color: white;
                     border: none;
@@ -195,7 +195,7 @@ class HistoricalChartComponent extends HTMLElement {
                 .slider-container label {
                     font-weight: 600;
                     font-size: 0.9rem;
-                    color: #555;
+                    color: var(--hc-muted, #555);
                     white-space: nowrap;
                 }
 
@@ -225,12 +225,12 @@ class HistoricalChartComponent extends HTMLElement {
                     align-items: center;
                     justify-content: center;
                     height: 350px;
-                    color: #999;
+                    color: var(--hc-muted, #999);
                     position: absolute;
                     top: 0;
                     left: 0;
                     right: 0;
-                    background: white;
+                    background: var(--hc-bg, white);
                     border-radius: 4px;
                     z-index: 10;
                 }
@@ -289,7 +289,7 @@ class HistoricalChartComponent extends HTMLElement {
                 }
 
                 .stat-box {
-                    background: #f5f5f5;
+                    background: var(--hc-stat-bg, #f5f5f5);
                     padding: 1rem;
                     border-radius: 6px;
                     text-align: center;
@@ -297,7 +297,7 @@ class HistoricalChartComponent extends HTMLElement {
 
                 .stat-label {
                     font-size: 0.85rem;
-                    color: #666;
+                    color: var(--hc-muted, #666);
                     margin-bottom: 0.5rem;
                 }
 
@@ -320,7 +320,7 @@ class HistoricalChartComponent extends HTMLElement {
                     align-items: center;
                     gap: 6px;
                     font-size: 13px;
-                    color: #333;
+                    color: var(--hc-text, #333);
                 }
 
                 .legend-color {
@@ -389,54 +389,43 @@ class HistoricalChartComponent extends HTMLElement {
         const loadBtn = this.shadowRoot.querySelector('#loadBtn');
         const canvas = this.shadowRoot.querySelector('#historicalCanvas');
 
-        // 1. KONFIGURACJA DAT GRANICZNYCH
-        const MIN_DATE = '1940-01-01'; // Początek danych w Open-Meteo
+        const MIN_DATE = '1940-01-01';
         const today = new Date();
-        const maxDateStr = today.toISOString().split('T')[0]; // Dzisiejsza data (YYYY-MM-DD)
+        const maxDateStr = today.toISOString().split('T')[0];
 
-        // 2. Ustawienie blokad w HTML (Inputy nie pozwolą wybrać spoza zakresu)
         startDateInput.min = MIN_DATE;
         startDateInput.max = maxDateStr;
 
         endDateInput.min = MIN_DATE;
         endDateInput.max = maxDateStr;
 
-        // 3. Ustawienie domyślnych wartości (ostatnie 7 dni)
         const defaultEnd = new Date(today);
-        defaultEnd.setDate(today.getDate() - 1); // Wczoraj (żeby mieć pełne dane)
+        defaultEnd.setDate(today.getDate() - 1);
         const defaultStart = new Date(defaultEnd);
-        defaultStart.setDate(defaultEnd.getDate() - 7); // Tydzień temu
+        defaultStart.setDate(defaultEnd.getDate() - 7);
 
         startDateInput.valueAsDate = defaultStart;
         endDateInput.valueAsDate = defaultEnd;
-
-        // 4. OBSŁUGA KLIKNIĘCIA "ZAŁADUJ"
         loadBtn.addEventListener('click', () => {
             const startVal = startDateInput.value;
             const endVal = endDateInput.value;
             const city = stateManager.get('currentCity');
             const selectedMetrics = this.getSelectedMetrics();
 
-            // --- WALIDACJA (Logika biznesowa) ---
             if (!startVal || !endVal) {
                 return alert('Wybierz oba zakresy dat!');
             }
 
-            // Sprawdzenie czy data nie jest sprzed 1940
             if (startVal < MIN_DATE) {
                 return alert(
                     'Dane historyczne są dostępne dopiero od 01.01.1940 roku.',
                 );
             }
-
-            // Sprawdzenie czy data nie jest z przyszłości
             if (endVal > maxDateStr || startVal > maxDateStr) {
                 return alert(
                     'Nie można pobrać prognozy w tym miejscu. Wybierz datę dzisiejszą lub z przeszłości.',
                 );
             }
-
-            // Sprawdzenie czy początek jest przed końcem
             if (startVal >= endVal) {
                 return alert(
                     'Data początkowa musi być wcześniejsza niż data końcowa!',
@@ -449,7 +438,6 @@ class HistoricalChartComponent extends HTMLElement {
                 );
             }
 
-            // --- WYSYŁANIE ZAPYTANIA ---
             stateManager.setHistoricalData(null);
 
             const loading = this.shadowRoot.querySelector('.loading');
@@ -467,7 +455,6 @@ class HistoricalChartComponent extends HTMLElement {
             );
         });
 
-        // --- PONIŻEJ OBSŁUGA WYKRESU (ZOOM, PAN) BEZ ZMIAN ---
         const zoomInBtn = this.shadowRoot.querySelector('#zoomInBtn');
         const zoomOutBtn = this.shadowRoot.querySelector('#zoomOutBtn');
         const rangeSlider = this.shadowRoot.querySelector('#rangeSlider');
@@ -768,7 +755,6 @@ class HistoricalChartComponent extends HTMLElement {
         const ctx = canvas.getContext('2d');
         const container = canvas.parentElement;
 
-        // Retina fix
         canvas.width = container.clientWidth * 2;
         canvas.height = 350 * 2;
         ctx.scale(2, 2);
@@ -776,12 +762,16 @@ class HistoricalChartComponent extends HTMLElement {
         const width = container.clientWidth;
         const height = 350;
 
+        const isDark =
+            document.documentElement.getAttribute('data-theme') === 'dark';
+        const gridColor = isDark ? '#3a4a6b' : '#eee';
+        const textColor = isDark ? '#aaa' : '#666';
+
         ctx.clearRect(0, 0, width, height);
 
         const chartWidth = width - this.padding.left - this.padding.right;
         const chartHeight = height - this.padding.top - this.padding.bottom;
 
-        // Znajdź min/max
         let globalMin = Infinity;
         let globalMax = -Infinity;
 
@@ -803,11 +793,10 @@ class HistoricalChartComponent extends HTMLElement {
         globalMin -= range * 0.1;
         globalMax += range * 0.1;
 
-        // Rysuj siatkę i etykiety Y
-        ctx.strokeStyle = '#eee';
+        ctx.strokeStyle = gridColor;
         ctx.lineWidth = 1;
-        ctx.fillStyle = '#666';
-        ctx.font = 'bold 11px sans-serif'; // ZWIĘKSZONO WAGĘ CZCIONKI
+        ctx.fillStyle = textColor;
+        ctx.font = 'bold 11px sans-serif';
         ctx.textAlign = 'right';
 
         const ySteps = 5;
@@ -822,12 +811,11 @@ class HistoricalChartComponent extends HTMLElement {
             ctx.fillText(value.toFixed(1), this.padding.left - 10, y + 4);
         }
 
-        // Rysuj etykiety X (Daty)
         ctx.textAlign = 'center';
         const pointCount = this.chartData.labels.length;
         const pointSpacing =
             pointCount > 1 ? chartWidth / (pointCount - 1) : chartWidth;
-        const maxLabels = Math.floor(chartWidth / 70); // Mniej gęste etykiety
+        const maxLabels = Math.floor(chartWidth / 70);
         const labelStep = Math.max(1, Math.ceil(pointCount / maxLabels));
 
         this.chartData.labels.forEach((label, i) => {
@@ -842,8 +830,6 @@ class HistoricalChartComponent extends HTMLElement {
                 ctx.fillText(dateStr, x, height - this.padding.bottom + 20);
             }
         });
-
-        // Rysuj serie danych
         this.chartData.datasets.forEach((dataset) => {
             if (!dataset.data || dataset.data.length === 0) return;
 
@@ -870,7 +856,6 @@ class HistoricalChartComponent extends HTMLElement {
             });
             ctx.stroke();
 
-            // Rysuj punkty
             const showAll = pointCount <= 30;
             dataset.data.forEach((value, i) => {
                 if (value == null) return;
@@ -892,8 +877,6 @@ class HistoricalChartComponent extends HTMLElement {
                 ctx.stroke();
             });
         });
-
-        // Linia hover
         if (this.hoveredPoint !== null) {
             const x = this.padding.left + this.hoveredPoint * pointSpacing;
             ctx.beginPath();

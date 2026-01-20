@@ -8,7 +8,6 @@ class StateManager {
             try {
                 savedUser = JSON.parse(savedUserRaw);
             } catch (e) {
-                console.warn('⚠️ Czyszczę stary format weather_user', e);
                 localStorage.removeItem('weather_user');
             }
         }
@@ -89,24 +88,16 @@ class StateManager {
             this.subscribers.get(path).forEach((cb) => {
                 try {
                     cb(newValue, oldValue);
-                } catch (e) {
-                    console.error(e);
-                }
+                } catch (e) {}
             });
         }
         if (this.subscribers.has('*')) {
             this.subscribers.get('*').forEach((cb) => {
                 try {
                     cb({ path, newValue, oldValue });
-                } catch (e) {
-                    console.error(e);
-                }
+                } catch (e) {}
             });
         }
-    }
-
-    subscribeToAll(callback) {
-        return this.subscribe('*', callback);
     }
 
     loginUser(user) {
@@ -118,14 +109,6 @@ class StateManager {
         this.set('favorites', []);
     }
 
-    setCurrentWeather(data) {
-        this.set('currentWeather', data);
-        this.set('lastUpdated', new Date().toISOString());
-    }
-
-    setForecast(data) {
-        this.set('forecast', data);
-    }
     setHistoricalData(data) {
         this.set('historicalData', data);
     }
@@ -138,24 +121,16 @@ class StateManager {
     setError(error) {
         this.set('error', error);
     }
-    setTheme(theme) {
-        this.set('theme', theme);
-    }
 
     toggleFavorite(city) {
-        console.log('🔄 toggleFavorite:', city);
         const favorites = authService.getFavorites();
-        console.log('📋 Obecne ulubione:', favorites);
 
         if (favorites.includes(city)) {
-            console.log('➖ Usuwam z ulubionych:', city);
             authService.removeFavorite(city);
         } else {
-            console.log('➕ Dodaję do ulubionych:', city);
             authService.addFavorite(city);
         }
         const updated = authService.getFavorites();
-        console.log('📊 Po zmianie:', updated);
         this.set('favorites', updated);
     }
 
@@ -169,19 +144,7 @@ class StateManager {
         if (this.history.length > this.maxHistory) this.history.shift();
     }
 
-    getHistory() {
-        return [...this.history];
-    }
-
-    getCacheStats() {
-        return { message: 'Cache stats not available in StateManager' };
-    }
-
-    debug() {
-        console.group('🔍 StateManager Debug');
-        console.log('State:', this.state);
-        console.groupEnd();
-    }
+    debug() {}
 }
 
 export const stateManager = new StateManager();

@@ -7,7 +7,7 @@ template.innerHTML = `
             display: block;
         }
         .history-container {
-            background: #f9f9f9;
+            background: var(--sh-bg, #f9f9f9);
             border-radius: 8px;
             padding: 1.5rem;
             margin: 1rem 0;
@@ -20,7 +20,7 @@ template.innerHTML = `
         }
         h3 {
             margin: 0;
-            color: #333;
+            color: var(--sh-title, #333);
             font-size: 1.1rem;
         }
         .clear-btn {
@@ -38,7 +38,7 @@ template.innerHTML = `
         }
         .history-list {
             display: grid;
-            grid-template-columns: repeat(2, 1fr); /* Domyślnie 2 kolumny */
+            grid-template-columns: repeat(2, 1fr);
             gap: 1rem;
             overflow-y: auto;
             overflow-x: hidden;
@@ -46,13 +46,12 @@ template.innerHTML = `
             max-height: 290px;
         }
         
-        /* --- POPRAWKA DLA MAŁYCH EKRANÓW (Mobile S/M) --- */
         @media (max-width: 480px) {
             .history-list {
-                grid-template-columns: 1fr; /* 1 kolumna na małych ekranach */
+                grid-template-columns: 1fr;
             }
             .history-container {
-                padding: 1rem; /* Mniejszy padding kontenera */
+                padding: 1rem;
             }
         }
 
@@ -60,7 +59,7 @@ template.innerHTML = `
             width: 6px;
         }
         .history-list::-webkit-scrollbar-track {
-            background: #f0f0f0;
+            background: var(--sh-scrollbar-track, #f0f0f0);
             border-radius: 10px;
         }
         .history-list::-webkit-scrollbar-thumb {
@@ -68,8 +67,8 @@ template.innerHTML = `
             border-radius: 10px;
         }
         .history-item {
-            background: white;
-            border: 1px solid #ddd;
+            background: var(--sh-item-bg, white);
+            border: 1px solid var(--sh-border, #ddd);
             border-radius: 8px;
             padding: 1rem;
             cursor: pointer;
@@ -78,7 +77,7 @@ template.innerHTML = `
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            min-width: 0; /* Zapobiega rozpychaniu flexa */
+            min-width: 0;
         }
         .history-item:hover {
             transform: translateY(-2px);
@@ -94,7 +93,7 @@ template.innerHTML = `
         }
         .history-item-city {
             font-weight: 600;
-            color: #333;
+            color: var(--sh-text, #333);
             font-size: 1.05rem;
             flex: 1;
             overflow: hidden;
@@ -108,7 +107,7 @@ template.innerHTML = `
             white-space: nowrap;
         }
         .history-item-condition {
-            color: #999;
+            color: var(--sh-muted, #999);
             font-size: 0.85rem;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -121,7 +120,7 @@ template.innerHTML = `
             margin-top: 0.5rem;
         }
         .history-item-date {
-            color: #ccc;
+            color: var(--sh-muted, #ccc);
             font-size: 0.8rem;
         }
         .delete-btn {
@@ -138,7 +137,7 @@ template.innerHTML = `
         }
         .empty {
             text-align: center;
-            color: #999;
+            color: var(--sh-muted, #999);
             padding: 2rem;
             font-style: italic;
             grid-column: 1 / -1;
@@ -170,7 +169,6 @@ class SearchHistoryComponent extends HTMLElement {
         this.clearBtn.addEventListener('click', () => this.handleClear());
 
         this.render();
-        console.log('✅ SearchHistoryComponent mounted');
     }
 
     render() {
@@ -209,7 +207,7 @@ class SearchHistoryComponent extends HTMLElement {
 
         this.shadowRoot.querySelectorAll('.delete-btn').forEach((btn) => {
             btn.addEventListener('click', (e) => {
-                e.stopPropagation(); // Ważne: żeby nie klikało w kafel
+                e.stopPropagation();
                 const entryId = e.target.dataset.id;
                 authService.deleteHistoryEntry(entryId);
                 this.render();

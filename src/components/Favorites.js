@@ -21,19 +21,19 @@ class FavoritesComponent extends HTMLElement {
                     display: flex; gap: 0.8rem; flex-wrap: wrap; align-items: center;
                 }
                 h3 { 
-                    font-size: 1rem; margin: 0 0 0.8rem 0; color: #555; font-weight: 600;
+                    font-size: 1rem; margin: 0 0 0.8rem 0; color: var(--fav-title, #555); font-weight: 600;
                     display: flex; align-items: center; gap: 0.5rem;
                 }
                 .chip {
-                    background: white;
+                    background: var(--fav-chip-bg, white);
                     padding: 0.5rem 1rem;
                     border-radius: 20px;
                     font-size: 0.9rem;
                     cursor: pointer;
                     transition: all 0.2s ease;
-                    border: 1px solid #e0e0e0;
+                    border: 1px solid var(--fav-chip-border, #e0e0e0);
                     display: flex; align-items: center; gap: 0.5rem;
-                    color: #333;
+                    color: var(--fav-chip-text, #333);
                     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
                 }
                 .chip:hover {
@@ -42,8 +42,8 @@ class FavoritesComponent extends HTMLElement {
                 }
                 .chip:active { transform: translateY(0); }
                 .empty-msg {
-                    font-size: 0.9rem; color: #888; font-style: italic;
-                    background: rgba(0,0,0,0.03); padding: 0.5rem 1rem; border-radius: 8px;
+                    font-size: 0.9rem; color: var(--fav-muted, #888); font-style: italic;
+                    background: var(--fav-empty-bg, rgba(0,0,0,0.03)); padding: 0.5rem 1rem; border-radius: 8px;
                 }
             </style>
             
